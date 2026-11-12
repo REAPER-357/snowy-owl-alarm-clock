@@ -1,0 +1,33 @@
+{
+  "name": "snowy-owl-alarm-clock",
+  "version": "3.2.0",
+  "private": true,
+  "description": "SNOWY OWL Alarm Clock - Capacitor Android wrapper",
+  "scripts": {
+    "build:css": "tailwindcss -c tailwind.config.js -i src/app.css -o www/css/app.css --minify",
+    "build:assets": "node scripts/copy-assets.mjs",
+    "build:native": "esbuild src/native.js --bundle --minify --format=iife --target=chrome90 --outfile=www/js/native.bundle.js",
+    "build": "npm run build:css && npm run build:assets && npm run build:icons && npm run build:native",
+    "sounds": "node scripts/make-sounds.mjs",
+    "icons": "capacitor-assets generate --android",
+    "android:add": "cap add android && node scripts/patch-android.mjs",
+    "android:sync": "npm run build && cap sync android && node scripts/patch-android.mjs",
+    "android:open": "cap open android",
+    "android:run": "npm run android:sync && cap run android",
+    "build:icons": "node scripts/build-icons.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/app": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/local-notifications": "^7.0.0",
+    "@capacitor-community/keep-awake": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.0.0",
+    "@fontsource/inter": "^5.1.0",
+    "esbuild": "^0.25.0",
+    "tailwindcss": "^3.4.17"
+  }
+}

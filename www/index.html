@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<script>try{var __d=JSON.parse(localStorage.getItem('snowy_owl_v1')||'{}'),__t=__d.settings&&__d.settings.theme;if(__t==='black'||__t==='light')document.documentElement.setAttribute('data-theme',__t)}catch(e){}</script>
+<title>SNOWY OWL Alarm Clock</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%230a0a0a'/%3E%3Ccircle cx='22' cy='30' r='9' fill='%23fff'/%3E%3Ccircle cx='42' cy='30' r='9' fill='%23fff'/%3E%3Ccircle cx='22' cy='30' r='4' fill='%23fbbf24'/%3E%3Ccircle cx='42' cy='30' r='4' fill='%23fbbf24'/%3E%3C/svg%3E">
+<!-- Built locally by "npm run build" (no CDN, works offline) -->
+<link rel="stylesheet" href="css/app.css">
+<style>
+:root { --accent: #8ab4f8; }
+/* Themes: the whole grey scale (Tailwind "neutral" + white) is driven by these variables */
+:root, html[data-theme="dark"] {
+  color-scheme: dark;
+  --n50:250 250 250; --n100:245 245 245; --n200:229 229 229; --n300:212 212 212; --n400:163 163 163;
+  --n500:142 142 148; --n600:104 104 110; --n700:80 80 86; --n800:58 58 63; --n900:44 44 48; --n950:31 31 35;
+  --white:255 255 255; --outer:#121214; --hover:rgb(255 255 255 / .06); --switch-off:#505056; --knob:#fff; --knob-shadow:none;
+  --owl-body:#eef3fa; --owl-ring:#1f2937; --owl-line:#c7d2e0;
+}
+html[data-theme="black"] {
+  color-scheme: dark;
+  --n500:115 115 115; --n600:82 82 82; --n900:11 11 11; --n800:31 31 31; --n700:52 52 52; --n950:0 0 0;
+  --outer:#000; --hover:rgb(255 255 255 / .06); --switch-off:#333;
+}
+html[data-theme="light"] {
+  color-scheme: light;
+  --n50:9 9 11; --n100:24 24 27; --n200:39 39 42; --n300:63 63 70; --n400:82 82 91;
+  --n500:113 113 122; --n600:161 161 170; --n700:212 212 216; --n800:228 228 231; --n900:255 255 255; --n950:244 244 245;
+  --white:9 9 11; --outer:#d4d4d8; --hover:rgb(0 0 0 / .05); --switch-off:#d4d4d8; --knob:#fff; --knob-shadow:0 1px 2px rgb(0 0 0 / .35);
+  --owl-body:#334155; --owl-ring:#f1f5f9; --owl-line:#94a3b8;
+}
+.text-on-acc { color: #0a0a0a; }
+.bg-rose-600 { color: #fff; }
+#saver .text-white { color: #fff; }
+html[data-theme="light"] .text-acc, html[data-theme="light"] .sec-h { color: var(--accent); color: color-mix(in srgb, var(--accent) 52%, #000); }
+html[data-theme="light"] .text-amber-300 { color: #b45309; }
+html[data-theme="light"] .text-rose-300, html[data-theme="light"] .text-rose-400 { color: #be123c; }
+html[data-theme="light"] .text-emerald-400 { color: #047857; }
+.theme-btn { padding: 10px 6px; border-radius: 14px; border: 1px solid rgb(var(--n800)); font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; color: rgb(var(--n300)); }
+.theme-btn.on { border-color: var(--accent); background: rgb(var(--n800) / .6); color: rgb(var(--white)); }
+.theme-dot { width: 14px; height: 14px; border-radius: 9999px; border: 1px solid rgb(128 128 128 / .6); }
+.hidden { display: none !important; }
+.text-acc { color: var(--accent); }
+.bg-acc { background: var(--accent); }
+.border-acc { border-color: var(--accent); }
+body { background: var(--outer); -webkit-tap-highlight-color: transparent; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(156,163,175,.3); border-radius: 9999px; }
+/* icons: inline sprite built from assets/icons (lucide names) */
+.ic { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; vertical-align: -0.125em; }
+:where(.ic) { width: 1em; height: 1em; }
+/* snooze symbol: crossed out when snooze is off */
+.snz { position: relative; }
+.snz.off::after { content: ''; position: absolute; left: 9px; right: 9px; top: 50%; height: 2px; margin-top: -1px; background: currentColor; border-radius: 2px; transform: rotate(-45deg); }
+/* range */
+input[type="range"] { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 9999px; outline: none; background: rgb(var(--n800)); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border: 0; border-radius: 50%; background: var(--accent); cursor: pointer; }
+/* switch */
+.sw { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+.sw input { opacity: 0; width: 0; height: 0; position: absolute; }
+.sw span { position: absolute; inset: 0; background: var(--switch-off); border-radius: 9999px; transition: .2s; cursor: pointer; }
+.sw span:before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: var(--knob); box-shadow: var(--knob-shadow); border-radius: 50%; transition: .2s; }
+.sw input:checked + span { background: var(--accent); }
+.sw input:checked + span:before { transform: translateX(20px); background: #0a0a0a; }
+.sw input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* layout helpers */
+.frame { position: fixed; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 28rem; }
+.row { display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; width: 100%; text-align: left; cursor: pointer; }
+.row:hover { background: var(--hover); }
+.sec-h { padding: 8px 24px; font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); }
+.chip { font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: rgb(var(--n800)); color: rgb(var(--n500)); }
+.chip.on { background: var(--accent); color: #0a0a0a; font-weight: 600; }
+#ringHold { transition: width 2s linear; }
+@keyframes owlpulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+.owlpulse { animation: owlpulse 1.2s ease-in-out infinite; }
+</style>
+</head>
+<body class="text-neutral-100 font-sans min-h-screen selection:bg-blue-500/30">
+<!--ICONS-->
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="ic-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol><symbol id="ic-bell" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></symbol><symbol id="ic-bell-off" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M17 17H4a1 1 0 0 1-.74-1.673C4.59 13.956 6 12.499 6 8a6 6 0 0 1 .258-1.742"/><path d="m2 2 20 20"/><path d="M8.668 3.01A6 6 0 0 1 18 8c0 2.687.77 4.653 1.707 6.05"/></symbol><symbol id="ic-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="ic-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol><symbol id="ic-download" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></symbol><symbol id="ic-ellipsis-vertical" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></symbol><symbol id="ic-flag" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></symbol><symbol id="ic-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol><symbol id="ic-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></symbol><symbol id="ic-hourglass" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></symbol><symbol id="ic-house" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol><symbol id="ic-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol><symbol id="ic-pause" viewBox="0 0 24 24"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></symbol><symbol id="ic-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol><symbol id="ic-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></symbol><symbol id="ic-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol><symbol id="ic-rotate-ccw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol><symbol id="ic-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="ic-snooze" viewBox="0 0 24 24"><circle cx="10" cy="14.5" r="6.5"/><path d="M10 11.5v3l1.5 1.5"/><path d="M3.5 7.5 5.5 5.5"/><path d="M14 3h4l-4 4h4"/><path d="M19.5 9h2.5l-2.5 2.5H22"/></symbol><symbol id="ic-timer" viewBox="0 0 24 24"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></symbol><symbol id="ic-trash-2" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></symbol><symbol id="ic-upload" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></symbol><symbol id="ic-volume-2" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></symbol><symbol id="ic-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol></defs></svg>
+<!--/ICONS-->
+
+<!-- Owl symbol -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="owl" viewBox="0 0 64 64">
+<path d="M10 8l14 8h16l14-8-2 26c0 14-9 24-20 24S12 48 12 34z" style="fill:var(--owl-body,#eef3fa)"/>
+<circle cx="23" cy="30" r="9" style="fill:var(--owl-ring,#1f2937)"/><circle cx="41" cy="30" r="9" style="fill:var(--owl-ring,#1f2937)"/>
+<circle cx="23" cy="30" r="6" fill="#fbbf24"/><circle cx="41" cy="30" r="6" fill="#fbbf24"/>
+<circle cx="23" cy="30" r="3" fill="#0a0a0a"/><circle cx="41" cy="30" r="3" fill="#0a0a0a"/>
+<path d="M32 34l-4 7h8z" fill="#f59e0b"/>
+<path d="M20 50q12 6 24 0" style="stroke:var(--owl-line,#c7d2e0)" stroke-width="2" fill="none"/>
+</symbol></defs></svg>
+
+<div id="app" class="max-w-md w-full mx-auto h-screen flex flex-col relative bg-neutral-950 border-x border-neutral-800 shadow-2xl">
+
+  <header class="flex items-center justify-between px-5 py-3 border-b border-neutral-800/60 bg-neutral-950/90 backdrop-blur-md z-20" style="padding-top:max(.75rem, env(safe-area-inset-top))">
+    <div class="flex items-center gap-3">
+      <img id="smallIcon" src="small-icon.png" alt="" class="w-9 h-9 rounded-md object-contain shrink-0" onerror="this.classList.add('hidden');document.getElementById('owlFallback').classList.remove('hidden')">
+      <svg id="owlFallback" class="w-9 h-9 hidden shrink-0"><use href="#owl"/></svg>
+      <div class="leading-tight">
+        <div class="text-2xl font-bold tracking-[0.1em] text-acc">SNOWY OWL</div>
+        <h1 id="headerTitle" class="text-xs font-medium tracking-[0.18em] uppercase text-neutral-400">Alarm Clock</h1>
+      </div>
+    </div>
+    <div class="flex items-center gap-1">
+      <button id="openSettingsBtn" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-neutral-800/80 active:scale-95 text-neutral-400 hover:text-white" title="Settings" aria-label="Settings"><svg class="ic text-lg"><use href="#ic-settings"/></svg></button>
+      <div class="relative">
+        <button id="menuBtn" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-neutral-800/80 active:scale-95 text-neutral-400 hover:text-white" title="More" aria-label="More options"><svg class="ic text-lg"><use href="#ic-ellipsis-vertical"/></svg></button>
+        <div id="overflowMenu" class="hidden absolute right-0 mt-2 w-52 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl py-2 z-50 text-sm">
+          <button id="menuSettings" class="w-full text-left px-4 py-2.5 hover:bg-neutral-800 flex items-center gap-3"><svg class="ic w-5 text-center text-neutral-400"><use href="#ic-settings"/></svg>Settings</button>
+          <button id="menuExport" class="w-full text-left px-4 py-2.5 hover:bg-neutral-800 flex items-center gap-3"><svg class="ic w-5 text-center text-neutral-400"><use href="#ic-download"/></svg>Backup data</button>
+          <button id="menuSaver" class="w-full text-left px-4 py-2.5 hover:bg-neutral-800 flex items-center gap-3"><svg class="ic w-5 text-center text-neutral-400"><use href="#ic-moon"/></svg>Screen saver</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 overflow-y-auto pb-28">
+
+    <!-- ALARM -->
+    <section id="alarmView" class="p-4 space-y-3">
+      <button id="permBanner" class="hidden w-full text-left text-sm px-4 py-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300"></button>
+      <button id="audioBanner" class="hidden w-full text-left text-sm px-4 py-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300">
+        <svg class="ic mr-2"><use href="#ic-volume-2"/></svg>Tap here once to enable alarm sound on this device.
+      </button>
+      <div class="flex justify-between items-center px-2 py-1">
+        <span id="nextAlarmText" class="text-xs font-semibold tracking-wider text-neutral-400 uppercase">No alarms set</span>
+        <div class="flex items-center gap-2">
+          <button id="addGroupBtn" class="px-3 py-1.5 rounded-full text-sm font-medium bg-neutral-800 text-neutral-200 hover:bg-neutral-700 flex items-center gap-1.5"><svg class="ic text-xs"><use href="#ic-folder"/></svg>Group</button>
+          <button id="addAlarmBtn" class="px-4 py-1.5 rounded-full text-sm font-medium bg-neutral-800 text-acc hover:bg-neutral-700 flex items-center gap-1.5"><svg class="ic text-xs"><use href="#ic-plus"/></svg>Add</button>
+        </div>
+      </div>
+      <div id="alarmList" class="space-y-2"></div>
+      <p id="webHint" class="text-[11px] text-neutral-500 px-2 pt-2 leading-relaxed">Alarms ring while SNOWY OWL is open in a tab or installed app. For overnight use, keep it open and turn on “Keep screen on” in Settings.</p>
+    </section>
+
+    <!-- CLOCK -->
+    <section id="clockView" class="hidden p-4 space-y-6">
+      <div class="text-center py-6 border-b border-neutral-800/50">
+        <div id="clockDigital" class="text-6xl font-light tracking-tight text-white mb-2"></div>
+        <div id="clockAnalog" class="hidden w-56 h-56 mx-auto mb-3"></div>
+        <div id="dateDisplay" class="text-sm font-medium text-neutral-400"></div>
+        <div id="homeLabel" class="text-xs text-neutral-500 mt-1"></div>
+        <button id="saverBtn" class="mt-4 px-4 py-1.5 rounded-full bg-neutral-800 text-acc text-sm hover:bg-neutral-700"><svg class="ic mr-1.5"><use href="#ic-moon"/></svg>Screen saver</button>
+      </div>
+      <div class="space-y-3">
+        <div class="flex justify-between items-center px-2">
+          <span class="text-xs font-semibold tracking-wider text-neutral-400 uppercase">World clocks</span>
+          <button id="addWorldBtn" class="px-3 py-1 rounded-full text-xs font-medium bg-neutral-800 text-acc hover:bg-neutral-700">Add city</button>
+        </div>
+        <div id="worldList" class="space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- TIMER -->
+    <section id="timerView" class="hidden p-6 flex flex-col items-center min-h-[420px]">
+      <button id="timerFace" class="relative w-64 h-64 flex items-center justify-center mt-2" aria-label="Set timer length">
+        <svg viewBox="0 0 256 256" class="w-full h-full -rotate-90">
+          <circle cx="128" cy="128" r="110" stroke="#262626" stroke-width="8" fill="transparent"/>
+          <circle id="timerRing" cx="128" cy="128" r="110" stroke="var(--accent)" stroke-width="8" fill="transparent" stroke-dasharray="691.15" stroke-dashoffset="0" stroke-linecap="round"/>
+        </svg>
+        <div class="absolute flex flex-col items-center">
+          <span id="timerDisplay" class="text-5xl font-light tracking-tight text-white">05:00</span>
+          <span id="timerSub" class="text-xs text-neutral-400 mt-1">Tap to set</span>
+        </div>
+      </button>
+      <div class="flex items-center gap-6 mt-8">
+        <button id="timerReset" class="w-12 h-12 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-300 flex items-center justify-center" aria-label="Reset"><svg class="ic"><use href="#ic-rotate-ccw"/></svg></button>
+        <button id="timerStart" class="w-16 h-16 rounded-full bg-acc text-on-acc flex items-center justify-center text-xl shadow-lg hover:brightness-110 active:scale-95" aria-label="Start or pause"><svg class="ic ml-1" id="timerIcon"><use href="#ic-play"/></svg></button>
+        <button id="timerPlus" class="w-12 h-12 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-300 flex items-center justify-center font-medium text-xs">+1m</button>
+      </div>
+      <div class="flex flex-wrap justify-center gap-2 mt-8" id="timerPresets">
+        <button class="chip !text-sm !px-3 !py-1.5 !text-neutral-300" data-min="1">1 min</button>
+        <button class="chip !text-sm !px-3 !py-1.5 !text-neutral-300" data-min="5">5 min</button>
+        <button class="chip !text-sm !px-3 !py-1.5 !text-neutral-300" data-min="10">10 min</button>
+        <button class="chip !text-sm !px-3 !py-1.5 !text-neutral-300" data-min="15">15 min</button>
+        <button class="chip !text-sm !px-3 !py-1.5 !text-neutral-300" data-min="30">30 min</button>
+      </div>
+    </section>
+
+    <!-- STOPWATCH -->
+    <section id="stopwatchView" class="hidden p-6 flex flex-col items-center min-h-[420px]">
+      <div class="text-6xl font-light tracking-tight text-white my-8 tabular-nums"><span id="swMain">00:00</span><span class="text-3xl text-neutral-400">.<span id="swCs">00</span></span></div>
+      <div class="flex items-center gap-6 mb-8">
+        <button id="swLap" disabled class="w-12 h-12 rounded-full bg-neutral-800 disabled:opacity-40 hover:bg-neutral-700 text-neutral-300 flex items-center justify-center" aria-label="Lap"><svg class="ic text-sm"><use href="#ic-flag"/></svg></button>
+        <button id="swStart" class="w-16 h-16 rounded-full bg-acc text-on-acc flex items-center justify-center text-xl shadow-lg hover:brightness-110 active:scale-95" aria-label="Start or stop"><svg class="ic ml-1" id="swIcon"><use href="#ic-play"/></svg></button>
+        <button id="swReset" disabled class="w-12 h-12 rounded-full bg-neutral-800 disabled:opacity-40 hover:bg-neutral-700 text-neutral-300 flex items-center justify-center" aria-label="Reset"><svg class="ic"><use href="#ic-rotate-ccw"/></svg></button>
+      </div>
+      <div class="w-full max-h-72 overflow-y-auto space-y-2" id="lapList"></div>
+    </section>
+  </main>
+
+  <nav class="frame !top-auto bg-neutral-950/95 backdrop-blur-md border-t border-neutral-800/80 flex justify-around py-2 z-20" style="padding-bottom:max(.5rem, env(safe-area-inset-bottom))">
+    <button data-tab="alarm" class="nav-btn flex flex-col items-center px-4 py-1"><svg class="ic text-lg"><use href="#ic-bell"/></svg><span class="text-xs mt-1 font-medium">Alarm</span></button>
+    <button data-tab="clock" class="nav-btn flex flex-col items-center px-4 py-1"><svg class="ic text-lg"><use href="#ic-globe"/></svg><span class="text-xs mt-1 font-medium">Clock</span></button>
+    <button data-tab="timer" class="nav-btn flex flex-col items-center px-4 py-1"><svg class="ic text-lg"><use href="#ic-hourglass"/></svg><span class="text-xs mt-1 font-medium">Timer</span></button>
+    <button data-tab="stopwatch" class="nav-btn flex flex-col items-center px-4 py-1"><svg class="ic text-lg"><use href="#ic-timer"/></svg><span class="text-xs mt-1 font-medium">Stopwatch</span></button>
+  </nav>
+</div>
+
+<!-- SETTINGS -->
+<section id="settingsView" class="hidden frame bg-neutral-950 z-40 overflow-y-auto" style="padding-bottom:max(5rem,calc(env(safe-area-inset-bottom) + 3rem))">
+  <div class="flex items-center px-4 pb-4 border-b border-neutral-800/80 sticky top-0 bg-neutral-950/95 backdrop-blur-md z-10" style="padding-top:max(1rem,env(safe-area-inset-top))">
+    <button id="closeSettings" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-neutral-800 text-neutral-300 mr-2" aria-label="Back"><svg class="ic text-lg"><use href="#ic-arrow-left"/></svg></button>
+    <h2 class="text-xl font-normal text-white">Settings</h2>
+  </div>
+  <!-- App emblem: put your icon.png (name + picture) in www/ -->
+  <div id="emblem" class="px-8 pt-8 pb-6 flex justify-center border-b border-neutral-800/60">
+    <img src="icon.png" alt="SNOWY OWL Alarm Clock" class="w-full max-w-[18rem] aspect-square object-contain rounded-[2rem] shadow-2xl" onerror="document.getElementById('emblem').classList.add('hidden')">
+  </div>
+  <div id="settingsBody" class="divide-y divide-neutral-800/60"></div>
+  <div class="divide-y divide-neutral-800/60 border-t border-neutral-800/60">
+    <div class="py-3">
+      <div class="sec-h">Appearance</div>
+      <div class="px-6 py-3">
+        <div class="text-base text-neutral-100 mb-3">Theme</div>
+        <div id="themeRow" class="grid grid-cols-3 gap-2 mb-6" role="radiogroup" aria-label="Theme">
+          <button type="button" data-theme="black" class="theme-btn" role="radio"><span class="theme-dot" style="background:#000"></span>Black</button>
+          <button type="button" data-theme="dark" class="theme-btn" role="radio"><span class="theme-dot" style="background:#2c2c30"></span>Dark</button>
+          <button type="button" data-theme="light" class="theme-btn" role="radio"><span class="theme-dot" style="background:#fff"></span>Light</button>
+        </div>
+        <div class="text-base text-neutral-100 mb-3">Accent colour</div>
+        <div class="flex items-center gap-4" id="accentRow"></div>
+      </div>
+    </div>
+    <div class="py-3">
+      <div class="sec-h">Data</div>
+      <div class="px-6 py-3 flex gap-3">
+        <button id="exportBtn" class="flex-1 flex items-center justify-center py-2 px-4 rounded-full bg-neutral-800 hover:bg-neutral-700 text-sm font-medium text-neutral-200"><svg class="ic text-xs mr-2"><use href="#ic-download"/></svg>Export</button>
+        <button id="importBtn" class="flex-1 flex items-center justify-center py-2 px-4 rounded-full bg-neutral-800 hover:bg-neutral-700 text-sm font-medium text-neutral-200"><svg class="ic text-xs mr-2"><use href="#ic-upload"/></svg>Import</button>
+        <input type="file" id="importFile" accept=".json,.csv,.tsv,.txt,application/json,text/csv,text/plain" class="hidden">
+      </div>
+      <div class="px-6 -mt-1 pb-1 text-xs text-neutral-500">Export / Import: a backup file with all alarms and settings.</div>
+      <div class="px-6 py-3 flex gap-3">
+        <button id="shareAlarmsBtn" class="flex-1 flex items-center justify-center py-2 px-4 rounded-full bg-neutral-800 hover:bg-neutral-700 text-sm font-medium text-neutral-200"><svg class="ic text-xs mr-2"><use href="#ic-upload"/></svg>Share alarms</button>
+        <button id="sheetBtn" class="flex-1 flex items-center justify-center py-2 px-4 rounded-full bg-neutral-800 hover:bg-neutral-700 text-sm font-medium text-neutral-200"><svg class="ic text-xs mr-2"><use href="#ic-download"/></svg>From a sheet</button>
+      </div>
+      <div class="px-6 pb-2 text-xs text-neutral-500">Share alarms sends them as rows you can paste into Google Sheets. From a sheet adds alarms from a shared Google Sheet.</div>
+      <button id="batteryBtn" class="row hidden"><div><div class="text-base text-neutral-100">Battery optimisation</div><div class="text-xs text-neutral-400 mt-0.5">Set SNOWY OWL to Unrestricted so alarms are never stopped</div></div></button>
+      <button id="resetBtn" class="row text-rose-400 text-sm">Reset all settings and data</button>
+    </div>
+    <div class="px-6 py-8 text-center">
+      <img src="small-icon.png" alt="" class="w-14 h-14 mx-auto mb-2 object-contain" onerror="this.classList.add('hidden');this.nextElementSibling.classList.remove('hidden')">
+      <svg class="w-14 h-14 mx-auto mb-2 hidden"><use href="#owl"/></svg>
+      <div class="text-xs text-neutral-500 font-mono">SNOWY OWL Alarm Clock · v3.2</div>
+    </div>
+  </div>
+</section>
+
+<!-- Import alarms from a sheet -->
+<div id="sheetModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[55] flex items-center justify-center" style="padding:max(1rem,env(safe-area-inset-top)) 1rem max(1rem,env(safe-area-inset-bottom))">
+  <div class="bg-neutral-900 border border-neutral-800 rounded-3xl w-full max-w-sm max-h-full overflow-y-auto shadow-2xl p-5 space-y-3">
+    <h3 class="text-lg font-medium text-white">Import alarms from a sheet</h3>
+    <p class="text-xs text-neutral-400 leading-relaxed">In Google Sheets choose Share, then &ldquo;Anyone with the link&rdquo; (Viewer), and paste the link here. First row: <span class="text-neutral-200">Time, Label, Days, Sound, Snooze, Vibrate, Group</span>. Days can be Weekdays, Weekends, Every day, Once or M, Tu, W&hellip; The alarms are added to yours.</p>
+    <input id="sheetUrl" type="url" inputmode="url" placeholder="https://docs.google.com/spreadsheets/d/&hellip;" class="w-full bg-neutral-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-neutral-500 outline-none">
+    <textarea id="sheetText" rows="3" placeholder="or paste rows copied from a sheet" class="w-full bg-neutral-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-neutral-500 outline-none"></textarea>
+    <input id="sheetGroup" type="text" maxlength="30" placeholder="Put them in a group (optional)" class="w-full bg-neutral-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-neutral-500 outline-none">
+    <div id="sheetMsg" class="text-xs text-neutral-400 min-h-[1rem]"></div>
+    <div class="flex justify-end gap-1"><button id="sheetCancel" class="px-4 py-2 text-sm font-medium text-acc hover:bg-neutral-800 rounded-full">Cancel</button><button id="sheetGo" class="px-5 py-2 text-sm font-semibold bg-acc text-on-acc rounded-full">Import</button></div>
+  </div>
+</div>
+
+<!-- Choice modal -->
+<div id="selectModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[56] flex items-center justify-center p-4">
+  <div class="bg-neutral-900 border border-neutral-800 rounded-3xl w-full max-w-xs overflow-hidden shadow-2xl">
+    <div id="modalTitle" class="px-6 pt-5 pb-3 text-lg font-medium text-white border-b border-neutral-800"></div>
+    <div id="modalOptions" class="max-h-72 overflow-y-auto py-2 divide-y divide-neutral-800/40"></div>
+    <div class="p-3 flex justify-end gap-1"><button id="modalCancel" class="px-4 py-2 text-sm font-medium text-acc hover:bg-neutral-800 rounded-full">Cancel</button><button id="modalOk" class="hidden px-5 py-2 text-sm font-semibold bg-acc text-on-acc rounded-full">OK</button></div>
+  </div>
+</div>
+
+<!-- Alarm editor -->
+<div id="alarmSheet" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center" style="padding:max(1rem,env(safe-area-inset-top)) 1rem max(1rem,env(safe-area-inset-bottom))">
+  <div class="w-full max-w-md bg-neutral-900 rounded-3xl px-5 pt-5 pb-0 space-y-4 max-h-full overflow-y-auto border border-neutral-800">
+    <div class="flex justify-between items-center">
+      <h3 id="sheetTitle" class="text-lg font-medium">New alarm</h3>
+      <button id="sheetClose" class="w-9 h-9 rounded-full hover:bg-neutral-800 text-neutral-400" aria-label="Close"><svg class="ic"><use href="#ic-x"/></svg></button>
+    </div>
+    <input type="time" id="edTime" class="w-full text-center text-4xl font-light bg-neutral-950 rounded-2xl py-3 text-white outline-none focus:ring-2 focus:ring-[var(--accent)]">
+    <input id="edLabel" maxlength="60" placeholder="Label (optional)" class="w-full bg-neutral-950 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--accent)] placeholder-neutral-600">
+    <button id="edGroupBtn" class="w-full flex justify-between items-center px-4 py-3 rounded-xl bg-neutral-950 text-left">
+      <div><div class="text-sm text-neutral-100">Group</div><div id="edGroupText" class="text-xs text-neutral-400 mt-0.5">Main</div></div>
+      <svg class="ic text-neutral-500 text-xs"><use href="#ic-chevron-down"/></svg>
+    </button>
+    <div>
+      <div class="text-xs uppercase tracking-wider text-neutral-400 mb-2">Repeat <span class="normal-case tracking-normal text-neutral-500">(none selected = rings once)</span></div>
+      <div id="edDays" class="flex justify-between"></div>
+    </div>
+    <button id="edSoundBtn" class="w-full flex justify-between items-center px-4 py-3 rounded-xl bg-neutral-950 text-left">
+      <div><div class="text-sm text-neutral-100">Sound</div><div id="edSoundText" class="text-xs text-neutral-400 mt-0.5"></div></div>
+      <svg class="ic text-acc text-xs" id="edSoundPreview"><use href="#ic-play"/></svg>
+    </button>
+    <div class="flex justify-between items-center px-4 py-3 rounded-xl bg-neutral-950">
+      <div class="pr-4"><div class="text-sm text-neutral-100">Snooze</div><div id="edSnoozeDesc" class="text-xs text-neutral-400 mt-0.5"></div></div>
+      <label class="sw"><input type="checkbox" id="edSnooze"><span></span></label>
+    </div>
+    <div class="flex justify-between items-center px-4 py-3 rounded-xl bg-neutral-950">
+      <div class="text-sm text-neutral-100">Vibrate</div>
+      <label class="sw"><input type="checkbox" id="edVibrate"><span></span></label>
+    </div>
+    <div class="flex gap-3 pt-2 pb-5 sticky bottom-0 bg-neutral-900">
+      <button id="edDelete" class="hidden px-4 py-3 rounded-full text-rose-400 hover:bg-neutral-800 text-sm"><svg class="ic"><use href="#ic-trash-2"/></svg></button>
+      <button id="edCancel" class="flex-1 py-3 rounded-full bg-neutral-800 hover:bg-neutral-700 text-sm font-medium">Cancel</button>
+      <button id="edSave" class="flex-1 py-3 rounded-full bg-acc text-on-acc text-sm font-semibold hover:brightness-110">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Timer set sheet -->
+<div id="timerSheet" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center" style="padding:max(1rem,env(safe-area-inset-top)) 1rem max(1rem,env(safe-area-inset-bottom))">
+  <div class="w-full max-w-md bg-neutral-900 rounded-3xl p-5 space-y-4 border border-neutral-800 max-h-full overflow-y-auto">
+    <h3 class="text-lg font-medium">Set timer</h3>
+    <div class="flex items-center justify-center gap-2 text-neutral-400">
+      <label class="text-center text-xs">h<input id="tH" type="number" min="0" max="99" inputmode="numeric" class="block w-20 text-center text-3xl bg-neutral-950 rounded-xl py-3 text-white outline-none focus:ring-2 focus:ring-[var(--accent)]"></label>:
+      <label class="text-center text-xs">m<input id="tM" type="number" min="0" max="59" inputmode="numeric" class="block w-20 text-center text-3xl bg-neutral-950 rounded-xl py-3 text-white outline-none focus:ring-2 focus:ring-[var(--accent)]"></label>:
+      <label class="text-center text-xs">s<input id="tS" type="number" min="0" max="59" inputmode="numeric" class="block w-20 text-center text-3xl bg-neutral-950 rounded-xl py-3 text-white outline-none focus:ring-2 focus:ring-[var(--accent)]"></label>
+    </div>
+    <div class="flex gap-3">
+      <button id="tCancel" class="flex-1 py-3 rounded-full bg-neutral-800 text-sm font-medium">Cancel</button>
+      <button id="tSave" class="flex-1 py-3 rounded-full bg-acc text-on-acc text-sm font-semibold">Set</button>
+    </div>
+  </div>
+</div>
+
+<!-- Switch a group off -->
+<div id="pauseSheet" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center" style="padding:max(1rem,env(safe-area-inset-top)) 1rem max(1rem,env(safe-area-inset-bottom))">
+  <div class="w-full max-w-md bg-neutral-900 rounded-3xl p-5 space-y-3 border border-neutral-800 max-h-full overflow-y-auto">
+    <h3 id="pauseTitle" class="text-lg font-medium"></h3>
+    <p class="text-xs text-neutral-400 leading-relaxed">The alarms in this group won’t ring. Each alarm keeps its own settings, and the group switches back on by itself.</p>
+    <div id="pauseOpts" class="space-y-2"></div>
+    <div class="flex items-end gap-2">
+      <label class="flex-1 text-xs text-neutral-400">Switch off through a date
+        <input id="pauseDate" type="date" class="mt-1 block w-full bg-neutral-950 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-[var(--accent)]">
+      </label>
+      <button id="pauseDateBtn" class="px-5 py-3 rounded-xl bg-acc text-on-acc text-sm font-semibold">Set</button>
+    </div>
+    <button id="pauseForever" class="w-full text-left px-4 py-3 rounded-xl bg-neutral-950 hover:bg-neutral-800 text-sm text-neutral-100">Until I switch it back on</button>
+    <button id="pauseCancel" class="w-full py-3 rounded-full bg-neutral-800 hover:bg-neutral-700 text-sm font-medium">Cancel</button>
+  </div>
+</div>
+
+<!-- Group editor -->
+<div id="groupSheet" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center" style="padding:max(1rem,env(safe-area-inset-top)) 1rem max(1rem,env(safe-area-inset-bottom))">
+  <div class="w-full max-w-md bg-neutral-900 rounded-3xl p-5 space-y-4 border border-neutral-800 max-h-full overflow-y-auto">
+    <h3 id="gTitle" class="text-lg font-medium">New group</h3>
+    <input id="gName" maxlength="30" placeholder="Group name (e.g. Work)" class="w-full bg-neutral-950 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--accent)] placeholder-neutral-600">
+    <div class="flex gap-3">
+      <button id="gDelete" class="hidden px-4 py-3 rounded-full text-rose-400 hover:bg-neutral-800 text-sm"><svg class="ic"><use href="#ic-trash-2"/></svg></button>
+      <button id="gCancel" class="flex-1 py-3 rounded-full bg-neutral-800 hover:bg-neutral-700 text-sm font-medium">Cancel</button>
+      <button id="gSave" class="flex-1 py-3 rounded-full bg-acc text-on-acc text-sm font-semibold">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ringing overlay -->
+<div id="ringOverlay" class="hidden fixed inset-0 bg-neutral-950 z-[60] flex flex-col items-center justify-between p-8 text-center">
+  <div class="mt-12 space-y-4">
+    <div class="owlpulse w-28 h-28 mx-auto"><svg class="w-full h-full"><use href="#owl"/></svg></div>
+    <h2 id="ringTime" class="text-5xl font-light text-white"></h2>
+    <p id="ringLabel" class="text-lg text-neutral-300 break-words"></p>
+    <p id="ringNote" class="text-xs text-neutral-500"></p>
+  </div>
+  <div class="w-full max-w-sm space-y-4 mb-8">
+    <button id="ringSecondary" class="w-full py-4 rounded-full bg-neutral-800 text-neutral-200 text-base font-medium hover:bg-neutral-700 active:scale-95"></button>
+    <button id="ringDismiss" class="relative overflow-hidden w-full py-4 rounded-full bg-rose-600 text-white text-lg font-medium hover:bg-rose-500 active:scale-95 shadow-lg select-none touch-none">
+      <span id="ringHold" class="absolute inset-y-0 left-0 bg-rose-900/60" style="width:0"></span>
+      <span id="ringDismissText" class="relative">Dismiss</span>
+    </button>
+  </div>
+</div>
+
+<!-- Screen saver -->
+<div id="saver" class="hidden fixed inset-0 bg-black z-[55] flex items-center justify-center cursor-pointer">
+  <div id="saverInner" class="text-center text-white transition-transform duration-1000">
+    <div id="saverDigital" class="text-7xl sm:text-8xl font-extralight tracking-tight tabular-nums"></div>
+    <div id="saverAnalog" class="hidden w-72 h-72 mx-auto"></div>
+    <div id="saverDate" class="text-base mt-3 opacity-70"></div>
+    <div id="saverNext" class="text-sm mt-1 opacity-50"></div>
+  </div>
+  <div class="absolute bottom-6 text-xs opacity-30 text-white">Tap anywhere to exit</div>
+</div>
+
+<div id="toasts" class="fixed left-1/2 -translate-x-1/2 bottom-24 z-[70] flex flex-col items-center gap-2 w-full max-w-sm px-4 pointer-events-none"></div>
+
+<script src="js/native.bundle.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+function icon(name, cls) { return `<svg class="ic${cls ? ' ' + cls : ''}"><use href="#ic-${name}"/></svg>`; }
+function setIc(id, name, cls) { const el = $(id); el.setAttribute('class', 'ic' + (cls ? ' ' + cls : '')); el.firstElementChild.setAttribute('href', '#ic-' + name); }
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DEVICE_TZ = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch (e) { return 'UTC'; } })();
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DAY_LETTER = ['S','M','T','W','T','F','S'];
+const KEY = 'snowy_owl_v1';
+// Native layer (Capacitor). On the web these are harmless stubs.
+const native = window.SnowyNative || { isNative: false, closeIfLocked: async () => {}, init() {}, sync() {}, keepAwake() {}, takeEvents: async () => [], getRinging: async () => ({ ringing: false }), snooze: async () => {}, dismiss: async () => {}, openSettings: async () => {}, saveFile: async () => {}, shareText: async () => {}, status: async () => ({}), fixPermissions: async () => {} };
+function vibrateNow() { if (navigator.vibrate) navigator.vibrate([500, 250, 500]); }
+const CITIES = [['London','Europe/London'],['Paris','Europe/Paris'],['Berlin','Europe/Berlin'],['Moscow','Europe/Moscow'],['Cairo','Africa/Cairo'],['Johannesburg','Africa/Johannesburg'],['Dubai','Asia/Dubai'],['Mumbai','Asia/Kolkata'],['Bangkok','Asia/Bangkok'],['Phnom Penh','Asia/Phnom_Penh'],['Singapore','Asia/Singapore'],['Hong Kong','Asia/Hong_Kong'],['Shanghai','Asia/Shanghai'],['Tokyo','Asia/Tokyo'],['Seoul','Asia/Seoul'],['Sydney','Australia/Sydney'],['Auckland','Pacific/Auckland'],['Honolulu','Pacific/Honolulu'],['Los Angeles','America/Los_Angeles'],['Denver','America/Denver'],['Chicago','America/Chicago'],['New York','America/New_York'],['Toronto','America/Toronto'],['São Paulo','America/Sao_Paulo'],['UTC','UTC']];
+
+/* ---------- defaults & state ---------- */
+const DEFAULTS = {
+  dismissWith:'tap', silenceAfter:10, snoozeLength:10, snoozeLimit:0, defaultSnooze:true,
+  alarmVolume:80, gradual:0, startWeekOn:0,
+  clockStyle:'digital', timeFormat:'24', showSeconds:false, autoHome:true, homeTz:DEVICE_TZ,
+  timerSound:'Soft Chime', timerGradual:0, timerVibrate:true,
+  saverStyle:'digital', nightMode:false, keepAwake:false, notify:false, accent:'#8ab4f8', theme:'dark'
+};
+const ENUMS = { dismissWith:['tap','hold'], clockStyle:['digital','analog'], saverStyle:['digital','analog'], timeFormat:['12','24'], startWeekOn:[0,1,6], theme:['black','dark','light'] };
+let S = { ...DEFAULTS };
+let alarms = [];
+let groups = []; // { id, name, enabled, pausedUntil, collapsed }
+let worldClocks = [];
+let snoozed = [];
+let timer = { total: 300000, remaining: 300000, endAt: null };
+let lastFired = {};
+try { lastFired = JSON.parse(sessionStorage.getItem('so_last') || '{}'); } catch (e) {}
+
+/* ---------- time helpers ---------- */
+const pf = {};
+function validTz(tz) { try { new Intl.DateTimeFormat('en-US', { timeZone: tz }); return true; } catch (e) { return false; } }
+function partsIn(date, tz) {
+  let f = pf[tz];
+  if (!f) {
+    try { f = pf[tz] = new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle:'h23', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' }); }
+    catch (e) { return tz === DEVICE_TZ ? { yr:date.getFullYear(), mo:date.getMonth()+1, day:date.getDate(), h:date.getHours(), m:date.getMinutes(), s:date.getSeconds() } : partsIn(date, DEVICE_TZ); }
+  }
+  const o = {}; f.formatToParts(date).forEach(p => o[p.type] = p.value);
+  return { yr:+o.year, mo:+o.month, day:+o.day, h:+o.hour % 24, m:+o.minute, s:+o.second };
+}
+function offsetMin(tz, date) { const p = partsIn(date, tz); return Math.round((Date.UTC(p.yr, p.mo-1, p.day, p.h, p.m, p.s) - Math.floor(date.getTime()/1000)*1000) / 60000); }
+function gmtLabel(tz) { const o = offsetMin(tz, new Date()), a = Math.abs(o); return `GMT${o < 0 ? '-' : '+'}${pad(Math.floor(a/60))}:${pad(a%60)}`; }
+function clockHTML(p, sec) {
+  const s = sec ? ':' + pad(p.s) : '';
+  if (S.timeFormat === '24') return `${pad(p.h)}:${pad(p.m)}${s}`;
+  return `${p.h % 12 || 12}:${pad(p.m)}${s}<span class="text-[0.35em] ml-1 text-neutral-400">${p.h < 12 ? 'AM' : 'PM'}</span>`;
+}
+function hmParts(hm) { const [h, m] = hm.split(':').map(Number); return S.timeFormat === '24' ? { t:`${pad(h)}:${pad(m)}`, ap:'' } : { t:`${h%12||12}:${pad(m)}`, ap:h<12?'AM':'PM' }; }
+function hmText(hm) { const x = hmParts(hm); return x.t + (x.ap ? ' ' + x.ap : ''); }
+function weekOrder() { return [0,1,2,3,4,5,6].map(i => (S.startWeekOn + i) % 7); }
+// ---- alarm groups ----
+const groupById = id => groups.find(g => String(g.id) === String(id)) || null;
+const groupOf = a => (a.group ? groupById(a.group) : null);
+const groupLive = (g, ms = Date.now()) => !g || (g.enabled && ms >= g.pausedUntil);
+const alarmLive = (a, ms = Date.now()) => a.enabled && groupLive(groupOf(a), ms);
+function dayStart(n) { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + n); return d.getTime(); }
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+function backText(ms) { return ms === dayStart(1) ? 'tomorrow' : new Date(ms).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }); }
+// Next time this alarm rings, skipping anything inside a switched-off group or a group's paused period.
+function nextFire(a, from = new Date()) {
+  const g = groupOf(a);
+  if (g && !g.enabled) return null;
+  let f = from.getTime();
+  if (g && g.pausedUntil > f) f = g.pausedUntil - 1;
+  const base = new Date(f), [h, m] = a.time.split(':').map(Number);
+  for (let d = 0; d < 8; d++) {
+    const c = new Date(base.getFullYear(), base.getMonth(), base.getDate() + d, h, m, 0, 0);
+    if (c.getTime() <= f) continue;
+    if (!a.days.length || a.days.includes(c.getDay())) return c;
+  }
+  return null;
+}
+function untilText(ms) {
+  const mins = Math.max(1, Math.ceil(ms / 60000)), d = Math.floor(mins/1440), h = Math.floor(mins%1440/60), m = mins%60;
+  return [d && d + ' d', h && h + ' h', m && m + ' min'].filter(Boolean).join(' ') || '1 min';
+}
+function nextAlarmInfo() {
+  let best = null;
+  alarms.filter(a => a.enabled).forEach(a => { const c = nextFire(a); if (c && (!best || c < best)) best = c; });
+  snoozed.forEach(sn => { const c = new Date(sn.at); if (!best || c < best) best = c; });
+  return best;
+}
+function repeatText(a) {
+  const d = a.days;
+  if (!d.length) return 'Once';
+  if (d.length === 7) return 'Every day';
+  if (d.join() === '1,2,3,4,5') return 'Weekdays';
+  if (d.join() === '0,6') return 'Weekends';
+  return d.map(i => DAY_NAMES[i]).join(', ');
+}
+
+/* ---------- storage ---------- */
+function sanitizeSettings(src) {
+  const o = { ...DEFAULTS };
+  if (src && typeof src === 'object') for (const k in DEFAULTS) if (typeof src[k] === typeof DEFAULTS[k]) o[k] = src[k];
+  for (const k in ENUMS) if (!ENUMS[k].includes(o[k])) o[k] = DEFAULTS[k];
+  if (!/^#[0-9a-f]{6}$/i.test(o.accent)) o.accent = DEFAULTS.accent;
+  if (!validTz(o.homeTz)) o.homeTz = DEVICE_TZ;
+  if (!SOUNDS[o.timerSound]) o.timerSound = DEFAULTS.timerSound;
+  o.alarmVolume = Math.min(100, Math.max(0, o.alarmVolume));
+  return o;
+}
+function normDays(d) {
+  if (!Array.isArray(d)) return [];
+  const out = d.map(x => typeof x === 'string' ? DAY_NAMES.indexOf(x) : x).filter(x => Number.isInteger(x) && x >= 0 && x <= 6);
+  return [...new Set(out)].sort((a, b) => a - b);
+}
+function normAlarm(a) {
+  a = a || {};
+  return {
+    id: a.id || (Date.now() + Math.floor(Math.random() * 1000)),
+    time: /^\d{2}:\d{2}$/.test(a.time) ? a.time : '07:00',
+    label: String(a.label || '').slice(0, 60),
+    enabled: !!a.enabled,
+    days: normDays(a.days),
+    snooze: a.snooze !== false,
+    vibrate: a.vibrate !== false,
+    sound: SOUNDS[a.sound] ? a.sound : 'Classic Beep',
+    group: a.group || null,
+    nid: Number.isInteger(a.nid) && a.nid > 0 ? a.nid : 0,
+    onceAt: Number.isFinite(a.onceAt) ? a.onceAt : null
+  };
+}
+function normGroups(list) {
+  return (Array.isArray(list) ? list : []).filter(g => g && g.id)
+    .map(g => ({ id: g.id, name: String(g.name || 'Group').slice(0, 30), enabled: g.enabled !== false, pausedUntil: Number.isFinite(g.pausedUntil) ? g.pausedUntil : 0, collapsed: !!g.collapsed })).slice(0, 30);
+}
+function fixGroupRefs() { const ids = new Set(groups.map(g => g.id)); alarms.forEach(a => { if (a.group && !ids.has(a.group)) a.group = null; }); }
+function normWorld(list) {
+  return (Array.isArray(list) ? list : []).filter(w => w && typeof w.city === 'string' && typeof w.tz === 'string' && validTz(w.tz))
+    .map((w, i) => ({ id: w.id || Date.now() + i, city: w.city.slice(0, 40), tz: w.tz })).slice(0, 30);
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify({ settings: S, alarms, groups, worldClocks, snoozed, timer })); } catch (e) {}
+  scheduleSync();
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      S = sanitizeSettings(d.settings);
+      alarms = (d.alarms || []).map(normAlarm);
+      worldClocks = normWorld(d.worldClocks);
+      groups = normGroups(d.groups); fixGroupRefs();
+      snoozed = Array.isArray(d.snoozed) ? d.snoozed.filter(x => x && x.at && x.id) : [];
+      if (d.timer && typeof d.timer.total === 'number') timer = { total: d.timer.total, remaining: d.timer.remaining, endAt: d.timer.endAt || null };
+      return;
+    }
+    // migrate from the first version
+    const oa = localStorage.getItem('clock_app_alarms'), ow = localStorage.getItem('clock_app_world');
+    if (oa) alarms = JSON.parse(oa).map(normAlarm);
+    if (ow) worldClocks = normWorld(JSON.parse(ow));
+    if (!oa) alarms = [normAlarm({ time:'07:00', label:'Morning alarm', enabled:true, days:[1,2,3,4,5] })];
+    if (!ow) worldClocks = normWorld([{ city:'London', tz:'Europe/London' }, { city:'Tokyo', tz:'Asia/Tokyo' }]);
+  } catch (e) {
+    alarms = []; worldClocks = [];
+  }
+}
+
+/* ---------- toast ---------- */
+function toast(msg, action) {
+  const el = document.createElement('div');
+  el.className = 'pointer-events-auto bg-neutral-800 text-neutral-100 text-sm rounded-full px-4 py-2.5 shadow-xl border border-neutral-700 flex items-center gap-3';
+  const sp = document.createElement('span'); sp.textContent = msg; el.appendChild(sp);
+  if (action) {
+    const b = document.createElement('button'); b.textContent = action.label; b.className = 'text-acc font-semibold';
+    b.onclick = () => { action.fn(); el.remove(); }; el.appendChild(b);
+  }
+  $('toasts').appendChild(el);
+  setTimeout(() => el.remove(), action ? 6000 : 3200);
+}
+
+/* ---------- audio ---------- */
+const SOUNDS = {
+  'Classic Beep': { type:'square',   period:1.4, gain:.28, notes:[[880,0,.12],[880,.2,.12],[880,.4,.12],[880,.6,.12]] },
+  'Soft Chime':   { type:'sine',     period:2.4, gain:.55, notes:[[523.25,0,.6],[659.25,.3,.6],[783.99,.6,.9]] },
+  'Digital':      { type:'triangle', period:1.2, gain:.5,  notes:[[988,0,.15],[740,.2,.15],[988,.4,.15],[740,.6,.15]] },
+  'Gentle Bell':  { type:'sine',     period:3,   gain:.65, notes:[[659.25,0,1.4],[987.77,0,1.0]] },
+  'Owl Hoot':     { type:'sine',     period:3.4, gain:.8,  notes:[[340,0,.35],[300,.5,.35],[300,1,.9]] }
+};
+const SOUND_OPTS = Object.keys(SOUNDS).map(k => [k, k]);
+let ctx = null;
+function ensureCtx() {
+  if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+  return ctx;
+}
+['pointerdown', 'touchend', 'keydown'].forEach(ev => addEventListener(ev, ensureCtx, { passive: true }));
+function startSound(name, gradual, vol) {
+  const c = ensureCtx();
+  if (!c) return { stop() {} };
+  const def = SOUNDS[name] || SOUNDS['Classic Beep'];
+  const master = c.createGain(); master.connect(c.destination);
+  const target = Math.pow(Math.max(0, vol) / 100, 1.5), t0 = c.currentTime;
+  if (gradual > 0) { master.gain.setValueAtTime(Math.min(.02, target), t0); master.gain.linearRampToValueAtTime(target, t0 + gradual); }
+  else master.gain.setValueAtTime(target, t0);
+  const play = () => {
+    const t = c.currentTime + .02;
+    def.notes.forEach(([f, o, d]) => {
+      const osc = c.createOscillator(), g = c.createGain();
+      osc.type = def.type; osc.frequency.value = f;
+      g.gain.setValueAtTime(0, t + o); g.gain.linearRampToValueAtTime(def.gain, t + o + .02); g.gain.exponentialRampToValueAtTime(.001, t + o + d);
+      osc.connect(g); g.connect(master); osc.start(t + o); osc.stop(t + o + d + .05);
+    });
+  };
+  play();
+  const iv = setInterval(play, def.period * 1000);
+  return { stop() { clearInterval(iv); try { master.gain.cancelScheduledValues(c.currentTime); master.gain.setTargetAtTime(0, c.currentTime, .03); setTimeout(() => master.disconnect(), 250); } catch (e) {} } };
+}
+let preview = null;
+function previewSound(name) {
+  if (preview) { preview.h.stop(); clearTimeout(preview.t); }
+  const h = startSound(name, 0, S.alarmVolume);
+  preview = { h, t: setTimeout(() => { h.stop(); preview = null; }, 4000) };
+}
+
+/* ---------- ringing ---------- */
+let ring = null, ringQueue = [], snd = null, vibT = null, silT = null, holdT = null;
+function trigger(kind, data) {
+  if (kind === 'alarm' && isRingingAlarm(data.alarm.id)) return;
+  if (ring) { ringQueue.push({ kind, data }); return; }
+  startRing(kind, data);
+}
+function startRing(kind, data) {
+  ring = { kind, data };
+  const isA = kind === 'alarm', a = data.alarm;
+  snd = startSound(isA ? a.sound : S.timerSound, isA ? S.gradual : S.timerGradual, S.alarmVolume);
+  const vib = isA ? a.vibrate : S.timerVibrate;
+  if (vib) { vibrateNow(); vibT = setInterval(vibrateNow, 2000); }
+  if (S.silenceAfter > 0) silT = setTimeout(() => endRing(true), S.silenceAfter * 60000);
+  const canSnooze = isA && a.snooze && (S.snoozeLimit === 0 || data.count < S.snoozeLimit);
+  $('ringTime').textContent = isA ? hmText(a.time) : 'Time\u2019s up';
+  $('ringLabel').textContent = isA ? (a.label || 'Alarm') : fmtTimer(timer.total) + ' timer';
+  $('ringNote').textContent = isA && !a.snooze ? 'Snooze is off for this alarm' : (isA && a.snooze && !canSnooze ? 'Snooze limit reached' : '');
+  const sec = $('ringSecondary');
+  if (isA) { sec.classList.toggle('hidden', !canSnooze); sec.textContent = `Snooze (${S.snoozeLength} min)`; }
+  else { sec.classList.remove('hidden'); sec.textContent = 'Add 1 minute'; }
+  $('ringDismissText').textContent = isA ? (S.dismissWith === 'hold' ? 'Hold to dismiss' : 'Dismiss') : (S.dismissWith === 'hold' ? 'Hold to stop' : 'Stop');
+  $('ringOverlay').classList.remove('hidden');
+  document.title = '\u23F0 ' + (isA ? (a.label || 'Alarm') : 'Timer');
+  if (document.hidden && S.notify && 'Notification' in window && Notification.permission === 'granted') {
+    try { new Notification('SNOWY OWL', { body: isA ? `${hmText(a.time)} \u2013 ${a.label || 'Alarm'}` : 'Timer finished', tag: 'snowy-owl-ring', requireInteraction: true }); } catch (e) {}
+  }
+}
+function endRing(silenced) {
+  if (!ring) return;
+  const r = ring; ring = null;
+  if (snd) snd.stop(); snd = null;
+  clearInterval(vibT); clearTimeout(silT);
+  if (navigator.vibrate) navigator.vibrate(0);
+  $('ringOverlay').classList.add('hidden');
+  document.title = 'SNOWY OWL Alarm Clock';
+  if (silenced) toast(`${r.kind === 'alarm' ? 'Alarm' : 'Timer'} silenced after ${S.silenceAfter} min`);
+  if (ringQueue.length) { const n = ringQueue.shift(); setTimeout(() => startRing(n.kind, n.data), 400); }
+}
+function dismissRing() {
+  if (ring && ring.native) { native.dismiss(); finishNative(); return; }
+  if (ring && ring.kind === 'alarm') { const id = ring.data.alarm.id; snoozed = snoozed.filter(s => String(s.id) !== String(id)); save(); }
+  endRing(); renderAlarms();
+}
+$('ringSecondary').onclick = () => {
+  if (!ring) return;
+  const r = ring;
+  if (r.native) {
+    if (r.kind === 'alarm') { native.snooze(); finishNative(); }
+    else { native.dismiss(); finishNative(() => { timer.total = 60000; timer.remaining = 60000; timer.endAt = Date.now() + 60000; save(); renderTimer(); }); }
+    return;
+  }
+  if (r.kind === 'alarm') {
+    const a = r.data.alarm;
+    snoozed = snoozed.filter(s => String(s.id) !== String(a.id));
+    snoozed.push({ id: a.id, at: Date.now() + S.snoozeLength * 60000, count: r.data.count + 1 });
+    save(); endRing(); toast(`Snoozed for ${S.snoozeLength} min`); updateNextText();
+  } else {
+    endRing(); timer.total = 60000; timer.remaining = 60000; timer.endAt = Date.now() + 60000; save(); renderTimer();
+  }
+};
+(() => {
+  const btn = $('ringDismiss'), bar = $('ringHold');
+  const cancel = () => { clearTimeout(holdT); holdT = null; bar.style.transition = 'none'; bar.style.width = '0'; };
+  btn.addEventListener('pointerdown', e => {
+    if (S.dismissWith !== 'hold') return;
+    e.preventDefault(); bar.style.transition = 'none'; bar.style.width = '0'; void bar.offsetWidth;
+    bar.style.transition = 'width 2s linear'; bar.style.width = '100%';
+    holdT = setTimeout(() => { cancel(); dismissRing(); }, 2000);
+  });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, () => { if (S.dismissWith === 'hold') cancel(); }));
+  btn.addEventListener('click', () => { if (S.dismissWith !== 'hold') dismissRing(); });
+  btn.addEventListener('keydown', e => { if (S.dismissWith === 'hold' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); dismissRing(); } });
+})();
+
+/* ---------- choice modal ---------- */
+function closeChoice() {
+  $('selectModal').classList.add('hidden');
+  if (preview) { preview.h.stop(); clearTimeout(preview.t); preview = null; }
+}
+// With a "previewFn" (sound pickers) a tap plays the sound and marks it; OK confirms. Without one a tap picks straight away.
+function openChoice(title, options, current, cb, previewFn) {
+  $('modalTitle').textContent = title;
+  const list = $('modalOptions'); let pending = current;
+  const draw = () => {
+    list.innerHTML = '';
+    options.forEach(([v, l]) => {
+      const sel = v === pending, b = document.createElement('button');
+      b.className = 'w-full text-left px-6 py-3 flex items-center justify-between hover:bg-neutral-800 text-sm ' + (sel ? 'text-acc font-semibold' : 'text-neutral-200');
+      b.innerHTML = `<span>${esc(l)}</span>${sel ? '<svg class="ic text-xs"><use href="#ic-check"/></svg>' : ''}`;
+      b.onclick = () => {
+        if (previewFn) { pending = v; draw(); ensureCtx(); previewFn(v); return; }
+        closeChoice(); cb(v);
+      };
+      list.appendChild(b);
+    });
+  };
+  draw();
+  $('modalOk').classList.toggle('hidden', !previewFn);
+  $('modalOk').onclick = () => { closeChoice(); cb(pending); };
+  $('selectModal').classList.remove('hidden');
+}
+$('modalCancel').onclick = closeChoice;
+
+/* ---------- alarms ---------- */
+const byId = id => alarms.find(a => String(a.id) === String(id));
+const DAY_SHORT = ['Su','M','Tu','W','Th','F','Sa'];
+// Short repeat text: Once / Every day / Weekdays / Weekends / M–W / M Tu Th Su
+function repeatShort(a) {
+  const d = a.days;
+  if (!d.length) return 'Once';
+  if (d.length === 7) return 'Every day';
+  if (d.join() === '1,2,3,4,5') return 'Weekdays';
+  if (d.join() === '0,6') return 'Weekends';
+  const order = weekOrder().filter(x => d.includes(x)), all = weekOrder(), parts = [];
+  for (let i = 0; i < order.length;) {
+    let j = i;
+    while (j + 1 < order.length && all.indexOf(order[j + 1]) === all.indexOf(order[j]) + 1) j++;
+    if (j - i >= 2) parts.push(DAY_SHORT[order[i]] + '–' + DAY_SHORT[order[j]]);
+    else for (let k = i; k <= j; k++) parts.push(DAY_SHORT[order[k]]);
+    i = j + 1;
+  }
+  return parts.join('.');
+}
+function alarmCard(a) {
+  const t = hmParts(a.time), live = alarmLive(a), dim = !groupLive(groupOf(a));
+  return `<div class="flex items-center gap-1 bg-neutral-900 border border-neutral-800/80 rounded-xl pl-4 pr-3 py-2 ${dim ? 'opacity-60' : ''}">
+    <div class="min-w-0 flex-1 cursor-pointer py-0.5" data-edit="${a.id}">
+      <div class="flex items-baseline gap-1.5 leading-none"><span class="text-3xl font-light tracking-tight ${live ? 'text-white' : 'text-neutral-500'}">${t.t}</span><span class="text-xs text-neutral-400">${t.ap}</span></div>
+      <div class="text-xs text-neutral-400 mt-1 truncate">${a.label ? esc(a.label) + ' · ' : ''}${repeatShort(a)}</div>
+    </div>
+    <button data-snooze="${a.id}" class="snz ${a.snooze ? 'text-acc' : 'off text-neutral-500'} w-10 h-10 rounded-full hover:bg-neutral-800 flex items-center justify-center" aria-label="Snooze ${a.snooze ? 'on' : 'off'}" title="Snooze ${a.snooze ? 'on' : 'off'} – tap to change">${icon('snooze', 'text-xl')}</button>
+    <label class="sw"><input type="checkbox" data-toggle="${a.id}" ${a.enabled ? 'checked' : ''} aria-label="Enable alarm"><span></span></label>
+  </div>`;
+}
+function groupStatus(g, n) {
+  const cnt = `${n} alarm${n === 1 ? '' : 's'}`;
+  if (!g.enabled) return { txt: `${cnt} · Off`, warn: true };
+  if (g.pausedUntil > Date.now()) return { txt: `${cnt} · Off, back on ${backText(g.pausedUntil)}`, warn: true };
+  return { txt: `${cnt} · On`, warn: false };
+}
+function renderAlarms() {
+  const box = $('alarmList'), byTime = (x, y) => x.time.localeCompare(y.time);
+  if (!alarms.length && !groups.length) {
+    box.innerHTML = `<div class="text-center py-14 text-neutral-500"><svg class="w-16 h-16 mx-auto mb-3 opacity-80"><use href="#owl"/></svg><div class="text-sm">No alarms yet</div><div class="text-xs mt-1">Tap Add to create one, or Group to organise them</div></div>`;
+  } else {
+    const main = alarms.filter(a => !a.group).sort(byTime);
+    let html = '';
+    if (groups.length && main.length) html += `<div class="px-2 pt-1 text-xs font-semibold tracking-wider text-neutral-500 uppercase">Main</div>`;
+    html += main.map(alarmCard).join('');
+    groups.forEach(g => {
+      const list = alarms.filter(a => a.group === g.id).sort(byTime), st = groupStatus(g, list.length), live = groupLive(g);
+      html += `<div class="rounded-2xl border ${live ? 'border-neutral-800/80' : 'border-amber-500/30'} bg-neutral-900/40 overflow-hidden">
+        <div class="flex items-center gap-2 px-3 py-3">
+          <button data-gtoggle="${g.id}" class="flex items-center gap-3 min-w-0 flex-1 text-left" aria-expanded="${!g.collapsed}">
+            ${icon('chevron-down', 'text-neutral-400 transition-transform ' + (g.collapsed ? '-rotate-90' : ''))}
+            <span class="min-w-0"><span class="block text-base font-medium text-white truncate">${esc(g.name)}</span><span class="block text-xs ${st.warn ? 'text-amber-300' : 'text-neutral-400'} truncate">${st.txt}</span></span>
+          </button>
+          <button data-gadd="${g.id}" class="w-9 h-9 rounded-full hover:bg-neutral-800 text-neutral-400" aria-label="Add alarm to ${esc(g.name)}">${icon('plus')}</button>
+          <button data-gedit="${g.id}" class="w-9 h-9 rounded-full hover:bg-neutral-800 text-neutral-400" aria-label="Edit ${esc(g.name)}">${icon('pencil')}</button>
+          <label class="sw ml-1"><input type="checkbox" data-gswitch="${g.id}" ${live ? 'checked' : ''} aria-label="Group on or off"><span></span></label>
+        </div>
+        ${g.collapsed ? '' : `<div class="px-2 pb-2 space-y-2">${list.length ? list.map(alarmCard).join('') : '<div class="text-xs text-neutral-500 px-2 py-3">No alarms in this group yet. Tap + to add one.</div>'}</div>`}
+      </div>`;
+    });
+    if (!groups.length && alarms.length) html += `<button data-newgroup class="w-full text-left rounded-xl border border-dashed border-neutral-700 hover:border-neutral-500 px-4 py-3 flex items-center gap-3">
+      ${icon('folder', 'text-xl text-acc')}
+      <span class="min-w-0"><span class="block text-sm text-neutral-100">Create an alarm group</span><span class="block text-xs text-neutral-400">For example Work: switch all its alarms off together on a day off</span></span>
+    </button>`;
+    box.innerHTML = html;
+  }
+  updateNextText();
+}
+function updateNextText() {
+  const n = nextAlarmInfo();
+  $('nextAlarmText').textContent = n ? 'Next alarm in ' + untilText(n - Date.now()) : 'No alarms set';
+}
+$('alarmList').addEventListener('click', e => {
+  if (e.target.closest('[data-newgroup]')) { openGroupEditor(null); return; }
+  const gt = e.target.closest('[data-gtoggle]');
+  if (gt) { const g = groupById(gt.dataset.gtoggle); if (g) { g.collapsed = !g.collapsed; save(); renderAlarms(); } return; }
+  const ga = e.target.closest('[data-gadd]');
+  if (ga) { const g = groupById(ga.dataset.gadd); if (g) openAlarmEditor(null, g.id); return; }
+  const ge = e.target.closest('[data-gedit]');
+  if (ge) { openGroupEditor(ge.dataset.gedit); return; }
+  const sn = e.target.closest('[data-snooze]');
+  if (sn) { const a = byId(sn.dataset.snooze); if (a) { a.snooze = !a.snooze; save(); renderAlarms(); toast(a.snooze ? 'Snooze on' : 'Snooze off for this alarm'); } return; }
+  const ed = e.target.closest('[data-edit]');
+  if (ed) openAlarmEditor(ed.dataset.edit);
+});
+$('alarmList').addEventListener('change', e => {
+  const gs = e.target.dataset.gswitch;
+  if (gs) {
+    const g = groupById(gs); if (!g) return;
+    if (e.target.checked) { setGroupState(g, true, 0); toast(`${g.name} is on`); }
+    else { e.target.checked = true; openPauseSheet(g); } // ask for how long before switching off
+    return;
+  }
+  const id = e.target.dataset.toggle; if (!id) return;
+  const a = byId(id); if (!a) return;
+  a.enabled = e.target.checked; armOnce(a);
+  if (!a.enabled) snoozed = snoozed.filter(s => String(s.id) !== String(a.id));
+  save(); renderAlarms();
+});
+$('addAlarmBtn').onclick = () => openAlarmEditor(null);
+
+let editing = null;
+function openAlarmEditor(id, groupId) {
+  const a = id ? byId(id) : null;
+  editing = { id: a ? a.id : null, days: a ? [...a.days] : [], sound: a ? a.sound : 'Classic Beep', group: a ? a.group : (groupId || null) };
+  $('sheetTitle').textContent = a ? 'Edit alarm' : 'New alarm';
+  $('edTime').value = a ? a.time : pad((new Date().getHours() + 1) % 24) + ':00';
+  $('edLabel').value = a ? a.label : '';
+  $('edSnooze').checked = a ? a.snooze : S.defaultSnooze;
+  $('edVibrate').checked = a ? a.vibrate : true;
+  $('edDelete').classList.toggle('hidden', !a);
+  $('edSoundText').textContent = editing.sound;
+  $('edGroupText').textContent = groupById(editing.group) ? groupById(editing.group).name : 'Main (no group)';
+  renderEdDays(); updateSnoozeDesc();
+  $('alarmSheet').classList.remove('hidden');
+}
+function updateSnoozeDesc() {
+  $('edSnoozeDesc').textContent = $('edSnooze').checked ? `Shows a Snooze button (${S.snoozeLength} min)` : 'No snooze button \u2013 you can only dismiss this alarm';
+}
+function renderEdDays() {
+  $('edDays').innerHTML = weekOrder().map(d => `<button type="button" data-d="${d}" class="w-10 h-10 rounded-full text-sm font-medium ${editing.days.includes(d) ? 'bg-acc text-on-acc' : 'bg-neutral-800 text-neutral-300'}" aria-label="${DAY_NAMES[d]}" aria-pressed="${editing.days.includes(d)}">${DAY_LETTER[d]}</button>`).join('');
+}
+$('edDays').addEventListener('click', e => {
+  const b = e.target.closest('[data-d]'); if (!b) return;
+  const d = +b.dataset.d, i = editing.days.indexOf(d);
+  if (i >= 0) editing.days.splice(i, 1); else editing.days.push(d);
+  editing.days.sort((x, y) => x - y); renderEdDays();
+});
+$('edSnooze').addEventListener('change', updateSnoozeDesc);
+$('edSoundBtn').onclick = () => openChoice('Alarm sound', SOUND_OPTS, editing.sound, v => { editing.sound = v; $('edSoundText').textContent = v; }, previewSound);
+const closeAlarmSheet = () => { $('alarmSheet').classList.add('hidden'); editing = null; };
+$('sheetClose').onclick = closeAlarmSheet; $('edCancel').onclick = closeAlarmSheet;
+$('edSave').onclick = () => {
+  const time = $('edTime').value;
+  if (!/^\d{2}:\d{2}$/.test(time)) { toast('Pick a time first'); return; }
+  const data = { time, label: $('edLabel').value.trim(), days: editing.days, snooze: $('edSnooze').checked, vibrate: $('edVibrate').checked, sound: editing.sound, group: editing.group || null };
+  if (editing.id) { const a = byId(editing.id); if (a) { Object.assign(a, data, { enabled: true }); armOnce(a); snoozed = snoozed.filter(s => String(s.id) !== String(a.id)); delete lastFired[a.id]; } }
+  else { const na = normAlarm({ ...data, enabled: true }); alarms.push(na); fixNids(); armOnce(na); }
+  save(); renderAlarms(); closeAlarmSheet();
+  const n = nextFire({ time, days: data.days, group: data.group });
+  if (n) toast('Rings in ' + untilText(n - Date.now())); else if (data.group) toast('Saved \u2013 this group is switched off');
+};
+$('edDelete').onclick = () => {
+  const a = byId(editing.id); if (!a) return;
+  const idx = alarms.indexOf(a);
+  alarms.splice(idx, 1); snoozed = snoozed.filter(s => String(s.id) !== String(a.id));
+  save(); renderAlarms(); closeAlarmSheet();
+  toast('Alarm deleted', { label: 'Undo', fn: () => { alarms.splice(idx, 0, a); save(); renderAlarms(); } });
+};
+
+/* ---------- groups ---------- */
+// Switch a group on, off for good (enabled=false) or off until a time (enabled=true + pausedUntil).
+// Alarms keep their own on/off state, so everything comes back exactly as it was.
+function setGroupState(g, enabled, pausedUntil) {
+  g.enabled = enabled; g.pausedUntil = pausedUntil || 0;
+  const live = groupLive(g);
+  alarms.filter(a => a.group === g.id).forEach(a => {
+    armOnce(a);
+    if (!live) snoozed = snoozed.filter(s => String(s.id) !== String(a.id));
+  });
+  save(); renderAlarms();
+}
+function expireGroups(ms) {
+  let ch = false;
+  groups.forEach(g => { if (g.enabled && g.pausedUntil && ms >= g.pausedUntil) { g.pausedUntil = 0; ch = true; } });
+  if (ch) { save(); renderAlarms(); }
+}
+$('edGroupBtn').onclick = () => openChoice('Group', [['', 'Main (no group)'], ...groups.map(g => [g.id, g.name]), ['__new', 'New group…']], editing.group || '', v => {
+  if (v === '__new') openGroupEditor(null, id => { editing.group = id; $('edGroupText').textContent = groupById(id).name; });
+  else { editing.group = v || null; $('edGroupText').textContent = v ? groupById(v).name : 'Main (no group)'; }
+});
+
+// --- switch-off sheet ---
+const PAUSE_OPTS = [['Rest of today', () => dayStart(1)], ['Today and tomorrow', () => dayStart(2)], ['Next 3 days', () => dayStart(3)], ['Next 7 days', () => dayStart(7)]];
+let pausing = null;
+function openPauseSheet(g) {
+  pausing = g.id;
+  $('pauseTitle').textContent = `Switch off “${g.name}”`;
+  $('pauseOpts').innerHTML = PAUSE_OPTS.map(([l], i) => `<button data-p="${i}" class="w-full text-left px-4 py-3 rounded-xl bg-neutral-950 hover:bg-neutral-800 text-sm text-neutral-100">${l}</button>`).join('');
+  $('pauseDate').min = ymd(new Date()); $('pauseDate').value = '';
+  $('pauseSheet').classList.remove('hidden');
+}
+const closePause = () => { $('pauseSheet').classList.add('hidden'); pausing = null; };
+function applyPause(enabled, until) {
+  const g = groupById(pausing); closePause(); if (!g) return;
+  setGroupState(g, enabled, until);
+  toast(enabled ? `${g.name} off – back on ${backText(until)}` : `${g.name} switched off`);
+}
+$('pauseOpts').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (b) applyPause(true, PAUSE_OPTS[+b.dataset.p][1]()); });
+$('pauseForever').onclick = () => applyPause(false, 0);
+$('pauseDateBtn').onclick = () => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec($('pauseDate').value);
+  if (!m) { toast('Pick a date first'); return; }
+  const until = new Date(+m[1], +m[2] - 1, +m[3] + 1).getTime(); // through the end of that day
+  if (until <= Date.now()) { toast('That date has already passed'); return; }
+  applyPause(true, until);
+};
+$('pauseCancel').onclick = closePause;
+
+// --- group editor ---
+let gEditing = null;
+function openGroupEditor(id, after) {
+  const g = id ? groupById(id) : null;
+  gEditing = { id: g ? g.id : null, after };
+  $('gTitle').textContent = g ? 'Edit group' : 'New group';
+  $('gName').value = g ? g.name : '';
+  $('gDelete').classList.toggle('hidden', !g);
+  $('groupSheet').classList.remove('hidden');
+  setTimeout(() => { try { $('gName').focus(); } catch (e) {} }, 50);
+}
+const closeGroupSheet = () => { $('groupSheet').classList.add('hidden'); gEditing = null; };
+$('gCancel').onclick = closeGroupSheet;
+$('gSave').onclick = () => {
+  const name = $('gName').value.trim().slice(0, 30);
+  if (!name) { toast('Give the group a name'); return; }
+  let g = gEditing.id ? groupById(gEditing.id) : null;
+  if (g) g.name = name;
+  else { g = { id: Date.now() + Math.floor(Math.random() * 1000), name, enabled: true, pausedUntil: 0, collapsed: false }; groups.push(g); }
+  const after = gEditing.after;
+  save(); renderAlarms(); closeGroupSheet();
+  if (after) after(g.id);
+};
+$('gName').addEventListener('keydown', e => { if (e.key === 'Enter') $('gSave').click(); });
+$('gDelete').onclick = () => {
+  const g = gEditing && groupById(gEditing.id); if (!g) return;
+  const n = alarms.filter(a => a.group === g.id).length;
+  if (!confirm(`Delete “${g.name}”?${n ? ` Its ${n} alarm${n === 1 ? '' : 's'} will move to Main.` : ''}`)) return;
+  alarms.forEach(a => { if (a.group === g.id) { a.group = null; armOnce(a); } });
+  groups = groups.filter(x => x.id !== g.id);
+  save(); renderAlarms(); closeGroupSheet();
+};
+$('addGroupBtn').onclick = () => openGroupEditor(null);
+
+/* ---------- alarm engine ---------- */
+function checkAlarms(now, ms) {
+  if (native.isNative) return; // the Android alarm service rings natively
+  const hm = `${pad(now.getHours())}:${pad(now.getMinutes())}`, day = now.getDay();
+  const dkey = `${now.getFullYear()}${now.getMonth()}${now.getDate()}-${hm}`;
+  alarms.forEach(a => {
+    if (!alarmLive(a, ms) || a.time !== hm) return;
+    if (a.days.length && !a.days.includes(day)) return;
+    if (lastFired[a.id] === dkey) return;
+    lastFired[a.id] = dkey;
+    try { sessionStorage.setItem('so_last', JSON.stringify(lastFired)); } catch (e) {}
+    if (!a.days.length) { a.enabled = false; a.onceAt = null; save(); renderAlarms(); }
+    trigger('alarm', { alarm: a, count: 0 });
+  });
+  const due = snoozed.filter(s => ms >= s.at);
+  if (due.length) {
+    snoozed = snoozed.filter(s => ms < s.at); save();
+    due.forEach(s => { const a = byId(s.id); if (a) trigger('alarm', { alarm: a, count: s.count }); });
+    updateNextText();
+  }
+}
+
+/* ---------- clock tab ---------- */
+function analogSVG(p, showSec) {
+  const h = ((p.h % 12) + p.m / 60) * 30, m = (p.m + p.s / 60) * 6, s = p.s * 6;
+  let ticks = '';
+  for (let i = 0; i < 60; i++) { const maj = i % 5 === 0; ticks += `<line x1="100" y1="${maj ? 8 : 12}" x2="100" y2="${maj ? 20 : 16}" transform="rotate(${i * 6} 100 100)" stroke="currentColor" stroke-width="${maj ? 3 : 1}" opacity="${maj ? .9 : .4}"/>`; }
+  return `<svg viewBox="0 0 200 200" class="w-full h-full"><circle cx="100" cy="100" r="96" fill="none" stroke="currentColor" stroke-opacity=".15" stroke-width="2"/>${ticks}
+    <line x1="100" y1="106" x2="100" y2="54" transform="rotate(${h} 100 100)" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+    <line x1="100" y1="108" x2="100" y2="32" transform="rotate(${m} 100 100)" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    ${showSec ? `<line x1="100" y1="114" x2="100" y2="24" transform="rotate(${s} 100 100)" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>` : ''}
+    <circle cx="100" cy="100" r="5" fill="var(--accent)"/></svg>`;
+}
+function updateClockTab(now) {
+  const p = partsIn(now, DEVICE_TZ), analog = S.clockStyle === 'analog';
+  $('clockDigital').classList.toggle('hidden', analog);
+  $('clockAnalog').classList.toggle('hidden', !analog);
+  if (analog) $('clockAnalog').innerHTML = analogSVG(p, S.showSeconds); else $('clockDigital').innerHTML = clockHTML(p, S.showSeconds);
+  $('dateDisplay').textContent = now.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+  $('homeLabel').textContent = `${DEVICE_TZ.replace(/_/g, ' ')} (${gmtLabel(DEVICE_TZ)})`;
+}
+function renderWorld() {
+  const list = [];
+  if (S.autoHome && S.homeTz !== DEVICE_TZ) list.push({ id: 'home', city: 'Home', tz: S.homeTz, home: true });
+  worldClocks.forEach(w => list.push(w));
+  $('worldList').innerHTML = list.length ? list.map(w => `<div class="flex justify-between items-center p-3.5 bg-neutral-900 border border-neutral-800/80 rounded-2xl">
+      <div class="min-w-0"><div class="text-base font-medium text-white truncate">${w.home ? '<svg class="ic text-acc text-xs mr-2"><use href="#ic-house"/></svg>' : ''}${esc(w.city)}</div><div class="text-xs text-neutral-400" data-wd="${esc(w.tz)}"></div></div>
+      <div class="flex items-center gap-3"><div class="text-xl font-light text-neutral-200 tabular-nums" data-wt="${esc(w.tz)}"></div>
+      ${w.home ? '' : `<button data-rm="${w.id}" class="w-8 h-8 rounded-full text-neutral-500 hover:text-rose-400 hover:bg-neutral-800" aria-label="Remove ${esc(w.city)}"><svg class="ic"><use href="#ic-x"/></svg></button>`}</div></div>`).join('')
+    : '<div class="text-center text-sm text-neutral-500 py-6">No world clocks yet</div>';
+  updateWorldTimes(new Date());
+}
+function updateWorldTimes(now) {
+  const q = partsIn(now, DEVICE_TZ), here = offsetMin(DEVICE_TZ, now);
+  document.querySelectorAll('[data-wt]').forEach(el => { el.innerHTML = clockHTML(partsIn(now, el.dataset.wt), false); });
+  document.querySelectorAll('[data-wd]').forEach(el => {
+    const tz = el.dataset.wd, p = partsIn(now, tz);
+    const dd = Math.round((Date.UTC(p.yr, p.mo-1, p.day) - Date.UTC(q.yr, q.mo-1, q.day)) / 864e5);
+    const diff = offsetMin(tz, now) - here, a = Math.abs(diff);
+    const dtxt = diff === 0 ? 'Same time' : `${diff > 0 ? '+' : '\u2212'}${Math.floor(a / 60)} hr${Math.floor(a / 60) === 1 ? '' : 's'}${a % 60 ? ' ' + a % 60 + ' min' : ''}`;
+    const txt = `${dd === 0 ? 'Today' : dd > 0 ? 'Tomorrow' : 'Yesterday'}, ${dtxt}`;
+    if (el.textContent !== txt) el.textContent = txt;
+  });
+}
+$('worldList').addEventListener('click', e => {
+  const b = e.target.closest('[data-rm]'); if (!b) return;
+  const i = worldClocks.findIndex(w => String(w.id) === b.dataset.rm); if (i < 0) return;
+  const [w] = worldClocks.splice(i, 1); save(); renderWorld();
+  toast(`${w.city} removed`, { label: 'Undo', fn: () => { worldClocks.splice(i, 0, w); save(); renderWorld(); } });
+});
+$('addWorldBtn').onclick = () => {
+  const have = new Set(worldClocks.map(w => w.tz));
+  const opts = CITIES.filter(c => !have.has(c[1])).map(c => [c[1], `${c[0]} (${gmtLabel(c[1])})`]);
+  if (!opts.length) { toast('All cities already added'); return; }
+  openChoice('Add city', opts, null, tz => { const c = CITIES.find(x => x[1] === tz); worldClocks.push({ id: Date.now(), city: c[0], tz }); save(); renderWorld(); });
+};
+
+/* ---------- timer ---------- */
+const CIRC = 691.15;
+function fmtTimer(ms) { const s = Math.ceil(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return (h ? h + ':' + pad(m) : pad(m)) + ':' + pad(s % 60); }
+const timerRem = () => timer.endAt ? Math.max(0, timer.endAt - Date.now()) : timer.remaining;
+function renderTimer() {
+  const rem = timerRem(), running = !!timer.endAt;
+  $('timerDisplay').textContent = fmtTimer(rem);
+  $('timerRing').style.strokeDashoffset = (CIRC * (1 - (timer.total ? rem / timer.total : 0))).toFixed(2);
+  setIc('timerIcon', running ? 'pause' : 'play', running ? '' : 'ml-1');
+  $('timerSub').textContent = running ? 'Running' : (rem === timer.total ? 'Tap to set' : 'Paused');
+  $('timerPresets').classList.toggle('opacity-40', running);
+}
+$('timerStart').onclick = () => {
+  ensureCtx();
+  if (timer.endAt) { timer.remaining = timerRem(); timer.endAt = null; }
+  else { if (timer.remaining <= 0) timer.remaining = timer.total; timer.endAt = Date.now() + timer.remaining; }
+  save(); renderTimer();
+};
+$('timerReset').onclick = () => { timer.endAt = null; timer.remaining = timer.total; save(); renderTimer(); };
+$('timerPlus').onclick = () => { timer.total += 60000; if (timer.endAt) timer.endAt += 60000; else timer.remaining += 60000; save(); renderTimer(); };
+$('timerPresets').addEventListener('click', e => {
+  const b = e.target.closest('[data-min]'); if (!b || timer.endAt) return;
+  timer.total = timer.remaining = +b.dataset.min * 60000; save(); renderTimer();
+});
+$('timerFace').onclick = () => {
+  if (timer.endAt) return;
+  const s = Math.round(timer.total / 1000);
+  $('tH').value = Math.floor(s / 3600); $('tM').value = Math.floor(s % 3600 / 60); $('tS').value = s % 60;
+  $('timerSheet').classList.remove('hidden');
+};
+$('tCancel').onclick = () => $('timerSheet').classList.add('hidden');
+$('tSave').onclick = () => {
+  const n = id => Math.min(99, Math.max(0, parseInt($(id).value, 10) || 0));
+  const ms = (n('tH') * 3600 + Math.min(59, n('tM')) * 60 + Math.min(59, n('tS'))) * 1000;
+  if (ms <= 0) { toast('Enter a time above zero'); return; }
+  timer.total = timer.remaining = ms; timer.endAt = null; save(); renderTimer(); $('timerSheet').classList.add('hidden');
+};
+
+/* ---------- stopwatch ---------- */
+const sw = { running: false, start: 0, elapsed: 0, laps: [], iv: null };
+const swNow = () => sw.running ? Date.now() - sw.start : sw.elapsed;
+function fmtSW(ms) { const t = Math.floor(ms / 10), cs = t % 100, s = Math.floor(t / 100) % 60, m = Math.floor(t / 6000) % 60, h = Math.floor(t / 360000); return { main: (h ? h + ':' : '') + pad(m) + ':' + pad(s), cs: pad(cs) }; }
+function renderSW() {
+  const f = fmtSW(swNow());
+  $('swMain').textContent = f.main; $('swCs').textContent = f.cs;
+  setIc('swIcon', sw.running ? 'pause' : 'play', sw.running ? '' : 'ml-1');
+  $('swLap').disabled = !sw.running; $('swReset').disabled = !sw.running && sw.elapsed === 0;
+}
+function renderLaps() {
+  const splits = sw.laps.map(l => l.split), min = Math.min(...splits), max = Math.max(...splits), mark = sw.laps.length >= 3;
+  $('lapList').innerHTML = sw.laps.map(l => {
+    const sp = fmtSW(l.split), to = fmtSW(l.total);
+    const cls = mark && l.split === min ? 'text-emerald-400' : mark && l.split === max ? 'text-rose-400' : 'text-neutral-200';
+    return `<div class="flex justify-between py-2 px-3 bg-neutral-900 rounded-lg text-sm border border-neutral-800 tabular-nums"><span class="text-neutral-400">Lap ${l.n}</span><span class="${cls}">${sp.main}.${sp.cs}</span><span class="text-neutral-500">${to.main}.${to.cs}</span></div>`;
+  }).join('');
+}
+$('swStart').onclick = () => {
+  if (sw.running) { sw.elapsed = swNow(); sw.running = false; clearInterval(sw.iv); }
+  else { sw.start = Date.now() - sw.elapsed; sw.running = true; sw.iv = setInterval(renderSW, 33); }
+  renderSW();
+};
+$('swLap').onclick = () => { if (!sw.running) return; const total = swNow(), prev = sw.laps.length ? sw.laps[0].total : 0; sw.laps.unshift({ n: sw.laps.length + 1, split: total - prev, total }); renderLaps(); };
+$('swReset').onclick = () => { clearInterval(sw.iv); sw.running = false; sw.elapsed = 0; sw.laps = []; renderLaps(); renderSW(); };
+
+/* ---------- screen saver & wake lock ---------- */
+let wl = null, saverOpen = false, lastSaverMin = -1;
+const wantWake = () => S.keepAwake || saverOpen;
+async function setWake(on) {
+  if (native.isNative) { native.keepAwake(on); return; }
+  try {
+    if (on && 'wakeLock' in navigator && !wl) { wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); }
+    else if (!on && wl) { await wl.release(); wl = null; }
+  } catch (e) { wl = null; }
+}
+function openSaver() {
+  saverOpen = true; lastSaverMin = -1;
+  const s = $('saver');
+  s.style.setProperty('--accent', S.nightMode ? '#b45309' : S.accent);
+  s.style.color = S.nightMode ? '#b45309' : '#fff';
+  $('saverInner').style.color = S.nightMode ? '#b45309' : '#fff';
+  s.style.opacity = S.nightMode ? '.55' : '1';
+  s.classList.remove('hidden'); updateSaver(new Date()); setWake(true);
+  if (!native.isNative && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+}
+function closeSaver() {
+  saverOpen = false; $('saver').classList.add('hidden'); setWake(wantWake());
+  if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+}
+function updateSaver(now) {
+  const p = partsIn(now, DEVICE_TZ), analog = S.saverStyle === 'analog';
+  $('saverDigital').classList.toggle('hidden', analog); $('saverAnalog').classList.toggle('hidden', !analog);
+  if (analog) $('saverAnalog').innerHTML = analogSVG(p, S.showSeconds); else $('saverDigital').innerHTML = clockHTML(p, S.showSeconds);
+  $('saverDate').textContent = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  const n = nextAlarmInfo();
+  $('saverNext').textContent = n ? '\u23F0 ' + hmText(`${pad(n.getHours())}:${pad(n.getMinutes())}`) : '';
+  if (p.m !== lastSaverMin) { lastSaverMin = p.m; $('saverInner').style.transform = `translate(${Math.round(Math.random() * 40 - 20)}px,${Math.round(Math.random() * 40 - 20)}px)`; }
+}
+$('saver').onclick = closeSaver;
+$('saverBtn').onclick = openSaver; $('menuSaver').onclick = () => { $('overflowMenu').classList.add('hidden'); openSaver(); };
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (wantWake()) setWake(true); reconcile(); tick(); } });
+
+/* ---------- main tick ---------- */
+let lastSec = -1, curTab = 'alarm';
+function secondTick(now) {
+  expireGroups(now.getTime());
+  if (curTab === 'clock') { updateClockTab(now); updateWorldTimes(now); }
+  if (saverOpen) updateSaver(now);
+  const ready = native.isNative || (ctx && ctx.state === 'running');
+  $('audioBanner').classList.toggle('hidden', !!ready);
+  if (curTab === 'alarm' && now.getSeconds() % 15 === 0) updateNextText();
+}
+function tick() {
+  const now = new Date(), ms = now.getTime();
+  checkAlarms(now, ms);
+  if (timer.endAt && ms >= timer.endAt + (native.isNative ? 4000 : 0)) { timer.endAt = null; timer.remaining = 0; save(); renderTimer(); if (!native.isNative) trigger('timer', {}); }
+  const sec = Math.floor(ms / 1000);
+  if (sec !== lastSec) { lastSec = sec; secondTick(now); }
+  if (timer.endAt && curTab === 'timer') renderTimer();
+}
+$('audioBanner').onclick = () => { ensureCtx(); previewSound('Soft Chime'); };
+
+/* ---------- tabs & menu ---------- */
+const TITLES = { alarm: 'Alarm', clock: 'Clock', timer: 'Timer', stopwatch: 'Stopwatch' };
+function switchTab(t) {
+  curTab = t;
+  Object.keys(TITLES).forEach(k => {
+    $(k + 'View').classList.toggle('hidden', k !== t);
+    const b = document.querySelector(`[data-tab="${k}"]`);
+    b.classList.toggle('text-acc', k === t); b.classList.toggle('text-neutral-500', k !== t);
+  });
+  if (t === 'clock') { updateClockTab(new Date()); renderWorld(); }
+  if (t === 'timer') renderTimer();
+}
+document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+$('menuBtn').onclick = e => { e.stopPropagation(); $('overflowMenu').classList.toggle('hidden'); };
+document.addEventListener('click', e => { if (!e.target.closest('#overflowMenu')) $('overflowMenu').classList.add('hidden'); });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!$('selectModal').classList.contains('hidden')) closeChoice();
+  else if (!$('groupSheet').classList.contains('hidden')) closeGroupSheet();
+  else if (!$('pauseSheet').classList.contains('hidden')) closePause();
+  else if (!$('alarmSheet').classList.contains('hidden')) closeAlarmSheet();
+  else if (!$('timerSheet').classList.contains('hidden')) $('timerSheet').classList.add('hidden');
+  else if (saverOpen) closeSaver();
+  else if (!$('settingsView').classList.contains('hidden')) $('settingsView').classList.add('hidden');
+});
+
+/* ---------- settings ---------- */
+const minLbl = v => v === 0 ? 'Never' : v + (v === 1 ? ' minute' : ' minutes');
+const secLbl = v => v === 0 ? 'Never' : v === 60 ? '1 minute' : v + ' seconds';
+const homeOpts = () => { const l = CITIES.map(c => [c[1], `${c[0]} (${gmtLabel(c[1])})`]); if (!CITIES.some(c => c[1] === DEVICE_TZ)) l.unshift([DEVICE_TZ, `${DEVICE_TZ.replace(/_/g, ' ')} (${gmtLabel(DEVICE_TZ)})`]); return l; };
+const SETTINGS = [
+  { h:'Alarms', items:[
+    { k:'dismissWith', t:'choice', l:'Dismiss alarm with', o:[['tap','Tap'],['hold','Press and hold (2 seconds)']] },
+    { k:'silenceAfter', t:'choice', l:'Silence after', o:[1,5,10,15,20,30,0].map(v => [v, minLbl(v)]) },
+    { k:'snoozeLength', t:'choice', l:'Snooze length', o:[1,3,5,10,15,20,30].map(v => [v, minLbl(v)]) },
+    { k:'snoozeLimit', t:'choice', l:'Snooze limit', o:[[0,'Unlimited'],[1,'1 time'],[2,'2 times'],[3,'3 times'],[5,'5 times']] },
+    { k:'defaultSnooze', t:'toggle', l:'Snooze on new alarms', d:'Turn off to create new alarms with no snooze. You can still change it per alarm.' },
+    { k:'alarmVolume', t:'range', l:'Alarm volume' },
+    { k:'gradual', t:'choice', l:'Gradually increase volume', o:[0,5,10,30,60].map(v => [v, secLbl(v)]) },
+    { k:'startWeekOn', t:'choice', l:'Start week on', o:[[0,'Sunday'],[1,'Monday'],[6,'Saturday']] }
+  ]},
+  { h:'Clock', items:[
+    { k:'clockStyle', t:'choice', l:'Style', o:[['digital','Digital'],['analog','Analog']] },
+    { k:'timeFormat', t:'choice', l:'Time format', o:[['12','12-hour'],['24','24-hour']] },
+    { k:'showSeconds', t:'toggle', l:'Display time with seconds' },
+    { k:'autoHome', t:'toggle', l:'Automatic home clock', d:'While traveling in an area where the time is different, add a clock for home' },
+    { k:'homeTz', t:'choice', l:'Home time zone', fo:homeOpts }
+  ]},
+  { h:'Timers', items:[
+    { k:'timerSound', t:'choice', l:'Timer sound', o:SOUND_OPTS },
+    { k:'timerGradual', t:'choice', l:'Gradually increase volume', o:[0,5,10,30].map(v => [v, secLbl(v)]) },
+    { k:'timerVibrate', t:'toggle', l:'Timer vibrate' }
+  ]},
+  { h:'Screen saver', items:[
+    { k:'saverStyle', t:'choice', l:'Style', o:[['digital','Digital'],['analog','Analog']] },
+    { k:'nightMode', t:'toggle', l:'Night mode', d:'Very dim display (for dark rooms)' }
+  ]},
+  { h:'General', items:[
+    { k:'keepAwake', t:'toggle', l:'Keep screen on', d:'Stops the phone sleeping while SNOWY OWL is open, so alarms can ring overnight' },
+    { k:'notify', t:'toggle', l:'Notifications', d:'Show a notification when an alarm rings while the app is in the background' }
+  ]}
+];
+const showItem = it => !(native.isNative && (it.k === 'notify' || it.k === 'keepAwake')); // the Android app uses native notifications and real alarms, so neither setting is needed // the Android app always uses native notifications
+const ALL_ITEMS = SETTINGS.flatMap(s => s.items).filter(showItem);
+const optsOf = it => it.fo ? it.fo() : it.o;
+function buildSettings() {
+  $('settingsBody').innerHTML = SETTINGS.map(sec => `<div class="py-3"><div class="sec-h">${sec.h}</div>${sec.items.filter(showItem).map(it => {
+    if (it.t === 'choice') return `<button class="row" data-k="${it.k}"><div><div class="text-base text-neutral-100">${it.l}</div><div class="text-xs text-neutral-400 mt-0.5" data-v="${it.k}"></div></div></button>`;
+    if (it.t === 'toggle') return `<label class="row"><div class="pr-4"><div class="text-base text-neutral-100">${it.l}</div>${it.d ? `<div class="text-xs text-neutral-400 mt-0.5">${it.d}</div>` : ''}</div><span class="sw"><input type="checkbox" data-tg="${it.k}"><span></span></span></label>`;
+    return `<div class="px-6 py-4"><div class="flex justify-between mb-2"><span class="text-base text-neutral-100">${it.l}</span><span class="text-xs text-neutral-400" data-v="${it.k}"></span></div><div class="flex items-center gap-3"><svg class="ic text-neutral-400"><use href="#ic-bell"/></svg><input type="range" min="0" max="100" data-rg="${it.k}" class="flex-1"><button data-test class="text-xs px-3 py-1.5 rounded-full bg-neutral-800 text-acc">Test</button></div></div>`;
+  }).join('')}</div>`).join('');
+  $('accentRow').innerHTML = ['#8ab4f8','#e5e7eb','#34d399','#c084fc','#fbbf24','#f43f5e'].map(c => `<button data-c="${c}" class="w-8 h-8 rounded-full ring-2 ring-offset-2 ring-offset-neutral-950" style="background:${c}" aria-label="Accent ${c}"></button>`).join('');
+}
+function refreshSettings() {
+  ALL_ITEMS.forEach(it => {
+    if (it.t === 'choice') { const o = optsOf(it).find(x => x[0] === S[it.k]); const el = document.querySelector(`[data-v="${it.k}"]`); if (el) el.textContent = o ? o[1] : String(S[it.k]); }
+    else if (it.t === 'toggle') { const el = document.querySelector(`[data-tg="${it.k}"]`); if (el) el.checked = !!S[it.k]; }
+    else { const r = document.querySelector(`[data-rg="${it.k}"]`); if (r) r.value = S[it.k]; const el = document.querySelector(`[data-v="${it.k}"]`); if (el) el.textContent = S[it.k] + '%'; }
+  });
+  document.querySelectorAll('#accentRow button').forEach(b => { b.style.setProperty('--tw-ring-color', b.dataset.c === S.accent ? 'rgb(var(--white))' : 'transparent'); });
+}
+function applyAccent() { document.documentElement.style.setProperty('--accent', S.accent); }
+const THEME_BAR = { black: '#000000', dark: '#1f1f23', light: '#f4f4f5' };
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', S.theme);
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', THEME_BAR[S.theme] || '#0a0a0a');
+  document.querySelectorAll('#themeRow button').forEach(b => { const on = b.dataset.theme === S.theme; b.classList.toggle('on', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); });
+}
+$('themeRow').addEventListener('click', e => { const b = e.target.closest('[data-theme]'); if (!b) return; S.theme = b.dataset.theme; applyTheme(); changed('theme'); });
+function changed(k) {
+  save(); refreshSettings();
+  if (k === 'startWeekOn' || k === 'timeFormat') renderAlarms();
+  if (['clockStyle','timeFormat','showSeconds','autoHome','homeTz'].includes(k)) { renderWorld(); lastSec = -1; }
+  if (k === 'keepAwake') setWake(wantWake());
+}
+$('settingsBody').addEventListener('click', e => {
+  const t = e.target.closest('[data-test]');
+  if (t) { ensureCtx(); previewSound('Classic Beep'); return; }
+  const b = e.target.closest('[data-k]'); if (!b) return;
+  const it = ALL_ITEMS.find(x => x.k === b.dataset.k);
+  openChoice(it.l, optsOf(it), S[it.k], v => { S[it.k] = v; changed(it.k); }, it.k === 'timerSound' ? previewSound : null);
+});
+$('settingsBody').addEventListener('change', async e => {
+  const k = e.target.dataset.tg; if (!k) return;
+  if (k === 'notify' && e.target.checked) {
+    if (!('Notification' in window)) { toast('Notifications are not supported here'); e.target.checked = false; return; }
+    const r = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+    if (r !== 'granted') { toast('Notification permission was not granted'); e.target.checked = false; S.notify = false; changed(k); return; }
+  }
+  S[k] = e.target.checked; changed(k);
+});
+$('settingsBody').addEventListener('input', e => {
+  const k = e.target.dataset.rg; if (!k) return;
+  S[k] = +e.target.value; document.querySelector(`[data-v="${k}"]`).textContent = S[k] + '%'; save();
+});
+$('accentRow').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (!b) return; S.accent = b.dataset.c; applyAccent(); changed('accent'); });
+const openSettings = () => { buildHomeRefresh(); $('settingsView').classList.remove('hidden'); $('overflowMenu').classList.add('hidden'); };
+function buildHomeRefresh() { refreshSettings(); }
+$('openSettingsBtn').onclick = openSettings; $('menuSettings').onclick = openSettings;
+$('closeSettings').onclick = () => { $('settingsView').classList.add('hidden'); renderAlarms(); };
+
+/* ---------- backup ---------- */
+// On the phone the file is saved through Android's own "save as" screen (a browser-style download does nothing in the app).
+async function saveText(name, text, mime) {
+  if (native.isNative) {
+    try { await native.saveFile(name, text, mime); toast('Saved ' + name); }
+    catch (e) { if (!/cancel/i.test(String((e && e.message) || e))) toast('Could not save the file'); }
+    return;
+  }
+  const url = URL.createObjectURL(new Blob([text], { type: mime })), a = document.createElement('a');
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function exportBackup() {
+  saveText(`snowy_owl_backup_${new Date().toISOString().slice(0, 10)}.json`,
+    JSON.stringify({ app: 'snowy-owl', settings: S, alarms, groups, worldClocks, exportedAt: new Date().toISOString() }, null, 2), 'application/json');
+}
+$('exportBtn').onclick = exportBackup;
+$('menuExport').onclick = () => { $('overflowMenu').classList.add('hidden'); exportBackup(); };
+$('importBtn').onclick = () => $('importFile').click();
+$('importFile').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (!d || typeof d !== 'object' || Array.isArray(d)) throw new Error('bad');
+      if (!confirm('Replace your current alarms and settings with this backup?')) return;
+      S = sanitizeSettings(d.settings);
+      if (Array.isArray(d.alarms)) alarms = d.alarms.slice(0, 100).map(normAlarm);
+      if (Array.isArray(d.worldClocks)) worldClocks = normWorld(d.worldClocks);
+      groups = normGroups(d.groups); fixGroupRefs();
+      snoozed = []; fixNids(); reconcile(); save(); applyAccent(); applyTheme(); refreshSettings(); renderAlarms(); renderWorld(); toast('Backup restored');
+    } catch (err) { toast('That file is not a valid backup'); }
+  };
+  r.readAsText(f); e.target.value = '';
+});
+/* ---------- sharing alarms / importing from a Google Sheet ---------- */
+const SHEET_HEAD = ['Time', 'Label', 'Days', 'Sound', 'Snooze', 'Vibrate', 'Group'];
+function daysText(a) {
+  if (!a.days.length) return 'Once';
+  if (a.days.length === 7) return 'Every day';
+  const k = a.days.join(); if (k === '1,2,3,4,5') return 'Weekdays'; if (k === '0,6') return 'Weekends';
+  return a.days.map(d => DAY_NAMES[d]).join(' ');
+}
+function alarmRows() {
+  return [SHEET_HEAD, ...alarms.map(a => { const g = groupById(a.group); return [a.time, a.label, daysText(a), a.sound, a.snooze ? 'Yes' : 'No', a.vibrate ? 'Yes' : 'No', g ? g.name : '']; })];
+}
+// Tab-separated, so pasting into Google Sheets drops each value into its own cell.
+$('shareAlarmsBtn').onclick = async () => {
+  if (!alarms.length) { toast('No alarms to share yet'); return; }
+  const text = alarmRows().map(r => r.map(c => String(c).replace(/[\t\r\n]+/g, ' ')).join('\t')).join('\n');
+  if (native.isNative) { native.shareText('SNOWY OWL alarms', text); return; }
+  if (navigator.share) { try { await navigator.share({ title: 'SNOWY OWL alarms', text }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(text); toast('Copied. Paste it into a Google Sheet'); } catch (e) { saveText('snowy_owl_alarms.tsv', text, 'text/tab-separated-values'); }
+};
+function parseRows(text) {
+  text = String(text || '').replace(/^﻿/, '');
+  const first = text.split(/\r?\n/).find(l => l.trim()) || '';
+  const d = first.includes('\t') ? '\t' : first.includes(';') && !first.includes(',') ? ';' : ',';
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+    else if (c === '"') q = true;
+    else if (c === d) { row.push(cur); cur = ''; }
+    else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(cur); cur = ''; if (row.some(x => x.trim())) rows.push(row); row = []; }
+    else cur += c;
+  }
+  row.push(cur); if (row.some(x => x.trim())) rows.push(row);
+  return rows.map(r => r.map(x => x.trim()));
+}
+function parseTimeCell(v) {
+  const m = String(v || '').trim().toLowerCase().match(/^(\d{1,2})(?:[:.h](\d{2}))?(?::\d{2})?\s*(?:([ap])\.?m\.?)?$/);
+  if (!m) return null;
+  let h = +m[1]; const mi = m[2] ? +m[2] : 0;
+  if (mi > 59 || h > 23 || (m[3] && (h < 1 || h > 12))) return null;
+  if (m[3] === 'p' && h < 12) h += 12; if (m[3] === 'a' && h === 12) h = 0;
+  return String(h).padStart(2, '0') + ':' + String(mi).padStart(2, '0');
+}
+const DAY_TOK = { su:0, sun:0, sunday:0, m:1, mo:1, mon:1, monday:1, tu:2, tue:2, tues:2, tuesday:2, w:3, we:3, wed:3, wednesday:3, th:4, thu:4, thur:4, thurs:4, thursday:4, f:5, fr:5, fri:5, friday:5, sa:6, sat:6, saturday:6 };
+function parseDaysCell(v) {
+  const t = String(v || '').toLowerCase().replace(/[–—]/g, '-').trim();
+  if (!t || /^(once|one.?time|never|no repeat|none)$/.test(t)) return [];
+  if (/every ?day|daily|all/.test(t)) return [0, 1, 2, 3, 4, 5, 6];
+  const out = new Set();
+  if (/weekday/.test(t)) [1, 2, 3, 4, 5].forEach(x => out.add(x));
+  if (/weekend/.test(t)) [0, 6].forEach(x => out.add(x));
+  t.split(/[\s,;.\/&+]+/).forEach(tok => {
+    if (tok.includes('-')) {
+      const [x, y] = tok.split('-'), i = DAY_TOK[x], j = DAY_TOK[y];
+      if (i !== undefined && j !== undefined) { for (let k = i, n = 0; n < 7; n++, k = (k + 1) % 7) { out.add(k); if (k === j) break; } }
+    } else if (DAY_TOK[tok] !== undefined) out.add(DAY_TOK[tok]);
+  });
+  return [...out].sort((x, y) => x - y);
+}
+const yes = (v, dflt) => { const t = String(v || '').trim().toLowerCase(); if (!t) return dflt; return !/^(no|n|false|0|off|never)$/.test(t); };
+function sheetCsvUrl(u) {
+  u = String(u || '').trim();
+  const gid = (u.match(/[#&?]gid=(\d+)/) || [])[1];
+  if (/\/d\/e\//.test(u)) return u.replace(/\/pub(html)?(\?.*)?(#.*)?$/, '/pub') + '?output=csv' + (gid ? '&gid=' + gid : '');
+  const m = u.match(/\/spreadsheets\/d\/([\w-]+)/);
+  return m ? `https://docs.google.com/spreadsheets/d/${m[1]}/export?format=csv${gid ? '&gid=' + gid : ''}` : null;
+}
+function importRows(rows, groupName) {
+  if (!rows.length) throw new Error('empty');
+  const head = rows[0].map(x => x.toLowerCase());
+  const hasHead = head.some(x => /^(time|alarm time)$/.test(x));
+  const col = (names, dflt) => { const i = head.findIndex(x => names.includes(x)); return hasHead ? i : dflt; };
+  const C = { time: col(['time', 'alarm time'], 0), label: col(['label', 'name', 'title'], 1), days: col(['days', 'repeat', 'repeats'], 2), sound: col(['sound', 'tone'], 3), snooze: col(['snooze'], 4), vibrate: col(['vibrate', 'vibration'], 5), group: col(['group'], 6), on: col(['enabled', 'on'], -1) };
+  const cell = (r, k) => (C[k] >= 0 && C[k] < r.length ? r[C[k]] : '');
+  const seen = new Set(alarms.map(a => `${a.time}|${a.label}|${a.days.join()}`));
+  let added = 0, skipped = 0, dup = 0;
+  const gfind = name => {
+    name = String(name || '').trim().slice(0, 30); if (!name) return null;
+    let g = groups.find(x => x.name.toLowerCase() === name.toLowerCase());
+    if (!g && groups.length < 30) { g = { id: Date.now() + Math.floor(Math.random() * 100000), name, enabled: true, pausedUntil: 0, collapsed: false }; groups.push(g); }
+    return g ? g.id : null;
+  };
+  rows.slice(hasHead ? 1 : 0).forEach((r, i) => {
+    const time = parseTimeCell(cell(r, 'time'));
+    if (!time) { skipped++; return; }
+    if (alarms.length >= 100) { skipped++; return; }
+    const label = cell(r, 'label').slice(0, 60), days = parseDaysCell(cell(r, 'days'));
+    const key = `${time}|${label}|${days.join()}`;
+    if (seen.has(key)) { dup++; return; }
+    seen.add(key);
+    const snd = Object.keys(SOUNDS).find(k => k.toLowerCase() === cell(r, 'sound').toLowerCase());
+    alarms.push(normAlarm({ id: Date.now() + i, time, label, days, enabled: yes(cell(r, 'on'), true), snooze: yes(cell(r, 'snooze'), true), vibrate: yes(cell(r, 'vibrate'), true), sound: snd, group: gfind(groupName || cell(r, 'group')) }));
+    added++;
+  });
+  fixNids(); fixGroupRefs(); reconcile(); save(); renderAlarms();
+  return { added, skipped, dup };
+}
+const sheetMsg = (t, bad) => { $('sheetMsg').textContent = t; $('sheetMsg').style.color = bad ? '#fb7185' : ''; };
+$('sheetBtn').onclick = () => { sheetMsg(''); $('sheetModal').classList.remove('hidden'); };
+$('sheetCancel').onclick = () => $('sheetModal').classList.add('hidden');
+$('sheetGo').onclick = async () => {
+  const url = $('sheetUrl').value.trim(); let text = $('sheetText').value;
+  try {
+    if (!text.trim()) {
+      if (!url) { sheetMsg('Paste a Google Sheets link or some rows first.', true); return; }
+      const u = sheetCsvUrl(url);
+      if (!u) { sheetMsg('That does not look like a Google Sheets link.', true); return; }
+      sheetMsg('Loading…');
+      const r = await fetch(u);
+      if (!r.ok) throw new Error('http');
+      text = await r.text();
+      if (/^\s*<(!doctype|html)/i.test(text)) throw new Error('private');
+    }
+    const res = importRows(parseRows(text), $('sheetGroup').value);
+    if (!res.added && !res.dup) { sheetMsg('No alarms found. Check that the first column is the time, like 7:00 or 6:30 PM.', true); return; }
+    $('sheetModal').classList.add('hidden'); $('sheetUrl').value = ''; $('sheetText').value = '';
+    $('settingsView').classList.add('hidden');
+    toast(`Added ${res.added} alarm${res.added === 1 ? '' : 's'}` + (res.dup ? `, ${res.dup} already there` : '') + (res.skipped ? `, ${res.skipped} skipped` : ''));
+  } catch (e) {
+    sheetMsg(e && e.message === 'private' ? 'The sheet is private. Set sharing to “Anyone with the link”.' : 'Could not load the sheet. Check the link and sharing, or paste the rows instead.', true);
+  }
+};
+$('resetBtn').onclick = () => { if (confirm('Delete all alarms and reset every setting?')) { try { localStorage.removeItem(KEY); localStorage.removeItem('clock_app_alarms'); localStorage.removeItem('clock_app_world'); localStorage.removeItem('clock_app_settings'); } catch (e) {} location.reload(); } };
+
+/* ---------- init ---------- */
+/* ---------- native-layer helpers ---------- */
+// Each alarm gets a small integer id (nid) used to build Android notification ids.
+function fixNids() {
+  const used = new Set(); let max = 0;
+  alarms.forEach(a => { if (a.nid > max) max = a.nid; });
+  alarms.forEach(a => { if (!a.nid || used.has(a.nid)) a.nid = ++max; used.add(a.nid); });
+}
+// A one-time alarm remembers the exact moment it should ring (onceAt), so it is never re-armed for tomorrow by mistake.
+function armOnce(a) {
+  if (a.enabled && !a.days.length) { const n = nextFire(a); a.onceAt = n ? n.getTime() : null; } else a.onceAt = null;
+}
+function reconcile() {
+  let ch = false;
+  alarms.forEach(a => {
+    if (a.days.length || !a.enabled) { if (a.onceAt) { a.onceAt = null; ch = true; } return; }
+    if (!a.onceAt) { armOnce(a); if (a.onceAt) ch = true; }
+    else if (a.onceAt <= Date.now() - 60000) { a.enabled = false; a.onceAt = null; ch = true; } // it already rang while the app was closed
+  });
+  if (ch) { save(); renderAlarms(); }
+}
+function isRingingAlarm(id) {
+  const m = x => x.kind === 'alarm' && String(x.data.alarm.id) === String(id);
+  return !!((ring && m(ring)) || ringQueue.some(m));
+}
+let nativeReady = false;
+// Apply what happened natively while the page was closed (alarm fired, snoozed, dismissed).
+async function pullNative() {
+  if (!native.isNative) return;
+  const evs = await native.takeEvents();
+  let ch = false;
+  evs.forEach(e => {
+    if (e.kind === 'timer') { if (e.type === 'fired') { timer.endAt = null; timer.remaining = 0; ch = true; } return; }
+    const a = alarms.find(x => x.nid === e.aid); if (!a) return;
+    snoozed = snoozed.filter(s => String(s.id) !== String(a.id));
+    if (e.type === 'snooze') snoozed.push({ id: a.id, at: e.at, count: e.count });
+    else if (e.type === 'fired' && !a.days.length) { a.enabled = false; a.onceAt = null; }
+    ch = true;
+  });
+  if (ch) { save(); renderAlarms(); renderTimer(); }
+}
+// Show the ringing screen for something the native service is ringing. No sound here: Java is playing it.
+function showNativeRing(it) {
+  if (ring && ring.native && ring.key === it.key) return;
+  if (ring && !ring.native) endRing();
+  const isA = it.kind === 'alarm';
+  ring = { kind: it.kind, native: true, key: it.key, data: { alarm: { id: 'native-' + it.key } } };
+  $('ringTime').textContent = isA ? it.timeText : 'Time’s up';
+  $('ringLabel').textContent = isA ? (it.label || 'Alarm') : it.timeText;
+  $('ringNote').textContent = isA && !it.snooze ? 'Snooze is off for this alarm' : (isA && it.snooze && !it.canSnooze ? 'Snooze limit reached' : '');
+  const sec = $('ringSecondary');
+  if (isA) { sec.classList.toggle('hidden', !it.canSnooze); sec.textContent = `Snooze (${it.snoozeMin} min)`; }
+  else { sec.classList.remove('hidden'); sec.textContent = 'Add 1 minute'; }
+  $('ringDismissText').textContent = isA ? (S.dismissWith === 'hold' ? 'Hold to dismiss' : 'Dismiss') : (S.dismissWith === 'hold' ? 'Hold to stop' : 'Stop');
+  $('ringOverlay').classList.remove('hidden');
+}
+// After telling the service to snooze/dismiss: close the screen, then pick up the result.
+async function finishNative(after) {
+  await new Promise(r => setTimeout(r, 350));
+  if (ring && ring.native) endRing();
+  await pullNative();
+  if (after) after();
+  scheduleSync(); renderAlarms();
+  native.closeIfLocked(); // if the phone is still locked, drop back to the lock screen instead of staying in the app
+}
+function onNativeRing(ev) {
+  if (ev && ev.ringing && ev.item) showNativeRing(ev.item);
+  else { const was = !!(ring && ring.native); if (was) endRing(); pullNative(); if (was) native.closeIfLocked(); }
+}
+// Android back button: close the top-most thing first, then go back to Alarm, then minimise.
+function handleBack() {
+  if (ring) return true;
+  if (!$('selectModal').classList.contains('hidden')) { closeChoice(); return true; }
+  if (!$('sheetModal').classList.contains('hidden')) { $('sheetModal').classList.add('hidden'); return true; }
+  if (!$('groupSheet').classList.contains('hidden')) { closeGroupSheet(); return true; }
+  if (!$('pauseSheet').classList.contains('hidden')) { closePause(); return true; }
+  if (!$('alarmSheet').classList.contains('hidden')) { closeAlarmSheet(); return true; }
+  if (!$('timerSheet').classList.contains('hidden')) { $('timerSheet').classList.add('hidden'); return true; }
+  if (saverOpen) { closeSaver(); return true; }
+  if (!$('settingsView').classList.contains('hidden')) { $('settingsView').classList.add('hidden'); renderAlarms(); return true; }
+  if (curTab !== 'alarm') { switchTab('alarm'); return true; }
+  return false;
+}
+let syncT = null;
+function scheduleSync() {
+  if (!native.isNative || !nativeReady) return;
+  clearTimeout(syncT);
+  syncT = setTimeout(() => native.sync({ S, alarms, groups, snoozed, timer }), 400);
+}
+async function refreshPerms() {
+  if (!native.isNative) return;
+  const st = await native.status();
+  let msg = '';
+  if (st.notif === false) msg = 'Allow notifications so alarms can ring when the app is closed. Tap here.';
+  else if (st.exact === false) msg = 'Allow “Alarms & reminders” so alarms ring exactly on time. Tap here.';
+  else if (st.fullScreen === false) msg = 'Allow full-screen alarms so the ringing screen can open over the lock screen. Tap here.';
+  $('permBanner').textContent = msg; $('permBanner').classList.toggle('hidden', !msg);
+}
+$('permBanner').onclick = async () => { await native.fixPermissions(); refreshPerms(); };
+async function onResume() {
+  await pullNative();
+  nativeReady = true;
+  try {
+    const r = await native.getRinging();
+    if (r && r.ringing && r.item) showNativeRing(r.item); else if (ring && ring.native) endRing();
+  } catch (e) {}
+  reconcile(); renderAlarms(); renderTimer(); refreshPerms(); tick();
+  scheduleSync();
+}
+if (native.isNative) {
+  $('webHint').classList.add('hidden');
+  $('batteryBtn').classList.remove('hidden');
+  $('batteryBtn').onclick = () => native.openSettings('battery');
+}
+
+/* ---------- init ---------- */
+load(); fixNids(); reconcile(); applyAccent(); applyTheme(); buildSettings(); refreshSettings();
+renderAlarms(); renderWorld(); renderTimer(); renderSW(); switchTab('alarm');
+if (S.keepAwake && !native.isNative) setWake(true);
+native.init({ onRing: onNativeRing, onBack: handleBack, onResume });
+tick(); setInterval(tick, 250);
+})();
+</script>
+</body>
+</html>

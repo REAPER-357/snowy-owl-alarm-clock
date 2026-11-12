@@ -1,0 +1,13 @@
+{
+  "appId": "com.snowyowl.alarmclock",
+  "appName": "SNOWY OWL",
+  "webDir": "www",
+  "backgroundColor": "#0a0a0a",
+  "plugins": {
+    "CapacitorHttp": { "enabled": true },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_owl",
+      "iconColor": "#8AB4F8"
+    }
+  }
+}
